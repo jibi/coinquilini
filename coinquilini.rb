@@ -26,13 +26,6 @@ Payments = DB[:payments]
 module Sinatra
 
 module UserList
-	def user_list
-		list = '<select name=who>'
-		Users.each do |u|
-			list += "<option value='#{u[:id]}'>#{u[:name]}</option>"
-		end
-		list += '</select>'
-	end
 end
 
 end
@@ -41,7 +34,7 @@ configure do
 	helpers Sinatra::UserList
 end
 get '/' do
-	erb :pay_form, {:locals => { :user_list => user_list }}
+	erb :pay_form
 end
 
 get '/show' do
