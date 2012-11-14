@@ -24,15 +24,20 @@ Users = DB[:users]
 Payments = DB[:payments]
 
 module Sinatra
-
-module UserList
+module Validate
+	def validate name, param
+		halt erb(:fail, {:locals => { 
+		  :error => 'Something\'s missing.',
+		  :msg => "Please specify #{name}" }}) if 
+		  params[param].nil? or params[param].empty?
+	end
 end
-
 end
 
 configure do
-	helpers Sinatra::UserList
+	helpers Sinatra::Validate
 end
+
 get '/' do
 	erb :pay_form
 end
@@ -42,6 +47,16 @@ get '/show' do
 end
 
 post '/' do
+	validate 'who', :who
+	validate 'what', :what
+	validate 'how', :how
+
+	Payments.insert(
+		:who	=> params[:who], 
+		:what	=> params[:what], 
+		:how	=> params[:how].gsub(',', '.'),
+		:date	=> Time.now.to_i
+	)
 
 	redirect '/show'
 end
