@@ -60,7 +60,7 @@ get '/show' do
 	payments = Payments.join(:users, :id => :who).where(:date => (start_t .. end_t))
 
 	payments.each do |p|
-		ind_tot[p[:who]] += p[:how].to_f.round 2
+		ind_tot[p[:name]] += p[:how].to_f.round 2
 		tot += p[:how].to_f.round 2
 	end
 

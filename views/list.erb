@@ -28,8 +28,8 @@
 		d = (v - avg_tot).round(2)
 
 		summary += '<tr ' + (c.even? ? ' class=alt' : '') + '><td>' + k.to_s + 
-			'</td><td>' + v.to_s + '</td><td class=' + (d >= 0 ? 'green' : 'red') + 
-			'>' + d.to_s + '</td></tr>'
+			'</td><td>' + v.to_s + '</td><td class=' + 
+			(d >= 0 ? 'green' : 'red') + '>' + d.to_s + '</td></tr>'
 
 		c = c + 1
 	end
