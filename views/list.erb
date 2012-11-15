@@ -1,0 +1,67 @@
+<form>
+	<%= 
+		list = '<select name=period>'
+
+		#TODO: use sequel methods
+		DB["SELECT DISTINCT strftime('%Y %m',date, 'unixepoch') AS ym FROM payments"].each do |d|
+			list += "<option value='#{d[:ym]}'>#{d[:ym]}</option>"
+		end
+		list += '</select>'
+
+	%>
+	<input type=submit value='Change period'>
+</form>
+
+<div id=title>Summary</div>
+<br>
+<table class=pay_table>
+	<tr>
+		<th>Who</th>
+		<th>How much</th>
+		<th>Diff</th>
+	</tr>
+	<%= 
+	summary	= ''
+	c = 0
+
+	ind_tot.each do |k,v|
+		d = (v - avg_tot).round(2)
+
+		summary += '<tr ' + (c.even? ? ' class=alt' : '') + '><td>' + k.to_s + 
+			'</td><td>' + v.to_s + '</td><td class=' + (d >= 0 ? 'green' : 'red') + 
+			'>' + d.to_s + '</td></tr>'
+
+		c = c + 1
+	end
+
+	summary
+	%>
+</table>
+<br><br>
+
+<div id=title>Payments</div>
+<br>
+<table class=pay_table>
+	<tr>
+		<th>When</th>
+		<th>Who</th>
+		<th>What</th>
+		<th>How much</th>
+	</tr>
+	<%=
+	table = ''
+	c = 0
+
+	payments.each do |p|
+		table += '<tr' + (c.even? ? ' class=alt' : '') + 
+			'><td>' + Time.at(p[:date]).strftime('%d %b (%H:%M)') + 
+			'</td><td>' + p[:name] + '</td><td>' + p[:what] + 
+			'</td><td>' + p[:how].to_s + '<td></td></tr>'
+
+		c = c + 1
+	end
+
+	table
+	%>
+</table>
+

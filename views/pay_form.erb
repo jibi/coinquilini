@@ -1,8 +1,8 @@
-<div id=title>Nuovo pagamento</div>
+<div id=title>New Payment</div>
 
 <form action=/ method=post>
 	<table class=bold>
-		<tr><td>Chi</td><td><%=
+		<tr><td>Who</td><td><%=
 
 		list = '<select name=who>'
 		Users.each do |u|
@@ -11,9 +11,9 @@
 		list += '</select>'
 
 		%></td></tr>
-		<tr><td>Cosa</td><td><input type=text name=what></td></tr>
-		<tr><td>Quanto</td><td><input type=text name=how></td></tr>
+		<tr><td>What</td><td><input type=text name=what></td></tr>
+		<tr><td>How much</td><td><input type=text name=how></td></tr>
 	</table>
 	<br>
-	<input type=submit value='Salva pagamento'>
+	<input type=submit value='Save'>
 </form>
