@@ -51,7 +51,7 @@ get '/show' do
 	period	= params["period"] || Time.now.strftime("%Y %m")
 	year	= period[0..3].to_i
 	month	= period[5..6].to_i
-	users_n	= Users.count
+	users_n	= Payments.select(:who).distinct.count
 
 	start_t = Time.mktime(year, month).to_i
 	end_t	= (month.eql?(12) ? Time.mktime(year + 1) :
