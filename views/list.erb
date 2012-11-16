@@ -1,3 +1,7 @@
+<script type="text/javascript">
+	document.getElementById("container").style.width = "800px";
+</script>
+
 <form>
 	<%= 
 		list = '<select name=period>'
@@ -54,7 +58,7 @@
 
 	payments.each do |p|
 		table += '<tr' + (c.even? ? ' class=alt' : '') + 
-			'><td>' + Time.at(p[:date]).strftime('%d %b (%H:%M)') + 
+			'><td>' + Time.at(p[:date]).strftime('%d %b, %H:%M') + 
 			'</td><td>' + p[:name] + '</td><td>' + p[:what] + 
 			'</td><td>' + p[:how].to_s + '<td></td></tr>'
 

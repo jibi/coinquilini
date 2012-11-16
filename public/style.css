@@ -1,0 +1,139 @@
+html {
+	background-color: #dde;
+	font-family: arial,sans-serif;
+	font-size: 13px; 
+}
+
+#menu {
+	color: #424280; 
+}
+
+#container {
+	background-color: whitesmoke;
+	width: 400px;
+	min-height: 240px;
+	border: 1px solid #bbe;
+	border-radius: 4px;
+	margin: 16px auto;
+	padding: 8px 0;
+	text-align: center;
+}
+
+#title {
+	color: #eee;
+	background-color: #4090f0;
+	margin: 12px 0px;
+	padding: 4px 0px;
+	font-size: 24px;
+	font-weight: bold;
+	text-shadow: 0 1px rgba(0, 0, 0, 0.2); 
+	border-top: 1px solid #3080e0;
+	border-bottom: 1px solid #3070e0; 
+}
+
+#fail {
+	color: #eee;
+	background-color: #c03020;
+	margin: 12px 0px;
+	padding: 4px 0px;
+	font-size: 24px;
+	font-weight: bold;
+	text-shadow: 0 1px rgba(0, 0, 0, 0.2); 
+	border-top: 1px solid #b02010;
+	border-bottom: 1px solid #b02010; 
+}
+
+select {
+	background-color: #ffe;
+	font-size: 13px;
+	height: 32px;
+	margin: 4px;
+	padding: 4px;
+	border: 1px solid #dde;
+}
+
+input {
+	margin: 4px;
+	outline: none;
+	font-size: 14px; 
+}
+
+input[type=submit] {
+	color: #fff;
+	background-color: #4090f0;
+	border: 1px solid #3070e0;
+	border-radius: 2px;
+	font-weight: bold;
+	padding: 6px 8px;
+}
+
+input[type=submit]:hover {
+	background-color: #3070e0;
+	border: 1px solid #2060d0;
+	text-shadow: 0 1px rgba(0, 0, 0, 0.2); 
+}
+
+input[type=text], input[type=password] {
+	padding-left: 8px;
+	border: 1px solid #e0e0e0;
+	height: 32px; 
+}
+
+input[type=text]:hover, input[type=password]:hover {
+	border: 1px solid #c0c0c0;
+}
+
+input[type=text]:focus, input[type=password]:focus {
+	border: 1px solid #4090f0;
+	box-shadow: 0pt 1px 2px rgba(0, 0, 0, 0.2) inset;
+}
+
+a {
+	color: #15C;
+	text-decoration: none;
+}
+
+ a:hover {
+	text-decoration: underline;
+}
+
+.bold {
+	color: #222;
+	font-weight: bold;
+	font-size: 13px;
+}
+
+table {
+	margin: 4px auto;
+}
+
+.pay_table {
+	width: 80%;
+	background-color: white;
+	border: 1px solid #3070e0;
+	border-collapse: collapse;
+	text-align: center;
+}
+
+.pay_table th {
+	font-size: 16px;
+}
+
+.pay_table tr td {
+	padding: 2px 2px 2px 8px;
+}
+
+.pay_table tr.alt td {
+	background-color: #dde;
+}
+
+.green {
+	font-weight: bold;
+	color: #0e0;
+}
+
+.red {
+	font-weight: bold;
+	color: #e00;
+}
+
