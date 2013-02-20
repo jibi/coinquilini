@@ -26,9 +26,9 @@ Payments = DB[:payments]
 module Sinatra
 module Validate
 	def validate name, param
-		halt erb(:fail, {:locals => { 
+		halt erb(:fail, {:locals => {
 		  :error => 'Something\'s missing.',
-		  :msg => "Please specify #{name}" }}) if 
+		  :msg => "Please specify #{name}" }}) if
 		  params[param].nil? or params[param].empty?
 
 		  params[param]
@@ -40,8 +40,25 @@ configure do
 	helpers Sinatra::Validate
 end
 
+before do
+	pass if request.path_info.split('?')[0] == '/new_user'
+	redirect '/new_user?none=y' if Users.count.zero?
+end
+
 get '/' do
 	erb :pay_form
+end
+
+get '/new_user' do
+	first = (params['none'] == 'y' ? true : false)
+
+	erb :new_user, {:locals => { :first => first }}
+end
+
+post '/new_user' do
+	Users.insert(:name => validate('who',  :who))
+
+	redirect '/'
 end
 
 get '/show' do

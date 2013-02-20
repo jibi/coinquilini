@@ -1,0 +1,8 @@
+<div id=title>New User</div>
+
+<%= 'You need to specify at least one user' if first %>
+
+<form action=/new_user method=post>
+	User <input type=text name=who>
+	<input type=submit value='Add'>
+</form>
