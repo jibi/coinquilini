@@ -1,11 +1,11 @@
 html {
 	background-color: #dde;
 	font-family: arial,sans-serif;
-	font-size: 13px; 
+	font-size: 11px;
 }
 
 #menu {
-	color: #424280; 
+	color: #424280;
 }
 
 #container {
@@ -24,11 +24,11 @@ html {
 	background-color: #4090f0;
 	margin: 12px 0px;
 	padding: 4px 0px;
-	font-size: 24px;
+	font-size: 20px;
 	font-weight: bold;
-	text-shadow: 0 1px rgba(0, 0, 0, 0.2); 
+	text-shadow: 0 1px rgba(0, 0, 0, 0.2);
 	border-top: 1px solid #3080e0;
-	border-bottom: 1px solid #3070e0; 
+	border-bottom: 1px solid #3070e0;
 }
 
 #fail {
@@ -36,16 +36,16 @@ html {
 	background-color: #c03020;
 	margin: 12px 0px;
 	padding: 4px 0px;
-	font-size: 24px;
+	font-size: 20px;
 	font-weight: bold;
-	text-shadow: 0 1px rgba(0, 0, 0, 0.2); 
+	text-shadow: 0 1px rgba(0, 0, 0, 0.2);
 	border-top: 1px solid #b02010;
-	border-bottom: 1px solid #b02010; 
+	border-bottom: 1px solid #b02010;
 }
 
 select {
 	background-color: #ffe;
-	font-size: 13px;
+	font-size: 11px;
 	height: 32px;
 	margin: 4px;
 	padding: 4px;
@@ -55,7 +55,7 @@ select {
 input {
 	margin: 4px;
 	outline: none;
-	font-size: 14px; 
+	font-size: 12px;
 }
 
 input[type=submit] {
@@ -70,7 +70,7 @@ input[type=submit] {
 input[type=submit]:hover {
 	background-color: #3070e0;
 	border: 1px solid #2060d0;
-	text-shadow: 0 1px rgba(0, 0, 0, 0.2); 
+	text-shadow: 0 1px rgba(0, 0, 0, 0.2);
 }
 
 input[type=text], input[type=password] {
@@ -100,7 +100,7 @@ a {
 .bold {
 	color: #222;
 	font-weight: bold;
-	font-size: 13px;
+	font-size: 11px;
 }
 
 table {
@@ -116,7 +116,7 @@ table {
 }
 
 .pay_table th {
-	font-size: 16px;
+	font-size: 14px;
 }
 
 .pay_table tr td {
