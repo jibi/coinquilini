@@ -78,13 +78,13 @@ end
 
 module View
 	def build_period_list
-		list = '<select name=period>'
+		list = ''
 
 		DB["SELECT DISTINCT strftime('%Y %m',date, 'unixepoch') AS ym FROM payments"].each do |d|
 			list += "<option value='#{d[:ym]}'>#{d[:ym]}</option>"
 		end
 
-		list += '</select>'
+		list
 	end
 
 	def build_summary_table(ind_tot, avg_tot)
@@ -127,8 +127,10 @@ module View
 		debts.each do |d|
 			table += '<tr' + (c.even? ? ' class=alt' : '') +
 				'><td>' + d[:from] +
-				'</td><td>' + d[:to] + '</td><td>' + d[:what].to_s + '<td></td></tr>'
+				'</td><td>' + d[:what].to_s + '</td><td>' + d[:to] + '<td></td></tr>'
+
 			c = c + 1
+
 		end
 
 		table
