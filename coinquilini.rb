@@ -3,6 +3,8 @@
 require 'sinatra'
 require 'sequel'
 
+Pass = "yourkey"
+
 DB = Sequel.connect('sqlite://db')
 
 DB.create_table?(:users) do
@@ -177,11 +179,13 @@ configure do
 	helpers Sinatra::View
 
 	set :server, :puma
+	enable :sessions
 end
 
 before do
-	pass if request.path_info.split('?')[0].match(/^\/new_user|^\/new_list/)
+	pass if request.path_info.split('?')[0].match(/^\/new_user|^\/new_list|^\/auth/)
 
+	redirect '/auth' if session[:auth].nil?
 	redirect '/new_user?none=y' if Users.count.zero?
 	redirect '/new_list?none=y' if Lists.count.zero?
 end
@@ -189,6 +193,27 @@ end
 get '/' do
 	@pay_form_erb = { :lists_list => build_lists_list, :users_list => build_users_list }
 	erb :pay_form
+end
+
+get '/auth' do
+	session.clear
+	erb :auth
+end
+
+post '/auth' do
+	pass = validate('passphrase', :pass)
+
+	if pass == Pass
+		session[:auth] = 'x'
+		redirect '/'
+	else
+		@fail_erb = {
+			:error => 'Wrong passphrase',
+			:msg	=> "But you can try <a href=/auth>again</a>"
+		}
+
+		halt erb(:fail)
+	end
 end
 
 get '/new_user' do
@@ -267,5 +292,5 @@ post '/' do
 
 	new_payment(who, what, how, list)
 
-	redirect "/paymets?list=#{list}"
+	redirect "/payments?list=#{list}"
 end
