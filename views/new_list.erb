@@ -1,0 +1,8 @@
+<div id=title>New List</div>
+
+<%= 'You need to specify at least one list' if @new_list_erb[:first] %>
+
+<form action=/new_list method=post>
+	User <input type=text name=name>
+	<input type=submit value='Add'>
+</form>
