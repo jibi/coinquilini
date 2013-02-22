@@ -11,9 +11,16 @@ DB.create_table?(:users) do
   String	:name
 end
 
+DB.create_table?(:lists) do
+  primary_key	:id
+
+  String	:name
+end
+
 DB.create_table?(:payments) do
   primary_key	:id
   foreign_key	:who, :users
+  foreign_key	:list, :lists
 
   String	:what
   Float		:how
@@ -21,6 +28,7 @@ DB.create_table?(:payments) do
 end
 
 Users = DB[:users]
+Lists = DB[:lists]
 Payments = DB[:payments]
 
 module Sinatra
@@ -29,16 +37,20 @@ module Db
 		Users.insert(:name => who)
 	end
 
+	def new_list(name)
+		Lists.insert(:name => name)
+	end
+
 	def get_distinct_users
 		Payments.select(:who).distinct
 	end
 
-	def new_payment(who, what, how)
-		Payments.insert(:who => who, :what	=> what, :how => how, :date => Time.now.to_i)
+	def new_payment(who, what, how, list)
+		Payments.insert(:who => who, :what => what, :how => how, :date => Time.now.to_i, :list => list)
 	end
 
-	def get_payments(start_t, end_t)
-		Payments.join(:users, :id => :who).where(:date => (start_t .. end_t))
+	def get_payments(list, start_t, end_t)
+		Payments.join(:users, :id => :who).where(:date => (start_t .. end_t), :list => list)
 	end
 end
 
@@ -49,7 +61,7 @@ module DebtMatrix
 		exp = exp.reject { |k,v| v.zero? }
 		return debts if exp.size == 1
 
-		avg = exp.reduce(0) { |sum, (_k, v)| sum + v }.to_f / exp.size
+		avg = exp.reduce(0) { |sum, (_, v)| sum + v }.to_f / exp.size
 		exp.each { |k, v| stat[k] = v - avg }
 
 		min_recv, max_recv = [stat.min_by(&:last), stat.max_by(&:last)]
@@ -77,6 +89,26 @@ module Validate
 end
 
 module View
+	def build_users_list
+		list = ''
+
+		Users.each do |u|
+			list += "<option value='#{u[:id]}'>#{u[:name]}</option>"
+		end
+
+		list
+	end
+
+	def build_lists_list
+		list = ''
+
+		Lists.each do |l|
+			list += "<option value='#{l[:id]}'>#{l[:name]}</option>"
+		end
+
+		list
+	end
+
 	def build_period_list
 		list = ''
 
@@ -148,11 +180,14 @@ configure do
 end
 
 before do
-	pass if request.path_info.split('?')[0] == '/new_user'
+	pass if request.path_info.split('?')[0].match(/^\/new_user|^\/new_list/)
+
 	redirect '/new_user?none=y' if Users.count.zero?
+	redirect '/new_list?none=y' if Lists.count.zero?
 end
 
 get '/' do
+	@pay_form_erb = { :lists_list => build_lists_list, :users_list => build_users_list }
 	erb :pay_form
 end
 
@@ -172,7 +207,24 @@ post '/new_user' do
 	redirect '/'
 end
 
-get '/show' do
+get '/new_list' do
+	first = (params['none'] == 'y' ? true : false)
+
+	@new_list_erb = { :first => first }
+
+	erb :new_list
+end
+
+post '/new_list' do
+	name = validate('name',  :name)
+
+	new_list(name)
+
+	redirect '/'
+end
+
+get '/payments' do
+	list = params[:list] || Lists.first[:id]
 
 	ind_tot	= Hash.new(0) # per user total
 	tot	= 0 # global total
@@ -186,7 +238,7 @@ get '/show' do
 	end_t	= (month.eql?(12) ? Time.mktime(year + 1) :
 		  Time.mktime(year, month + 1)).to_i
 
-	payments = get_payments(start_t, end_t)
+	payments = get_payments(list, start_t, end_t)
 	payments.each do |p|
 		ind_tot[p[:name]] += p[:how].to_f.round(2)
 		tot += p[:how].to_f.round 2
@@ -196,22 +248,24 @@ get '/show' do
 
 	avg_tot = (tot / users_n).round(2)
 
-	@list_erb = {
+	@payments_erb = {
+		:lists_list => build_lists_list,
 		:period_list	=> build_period_list,
 		:summary_table	=> build_summary_table(ind_tot, avg_tot),
 		:payments_table	=> build_payments_table(payments),
 		:payme_table	=> build_payme_table(debtmatrix)
 	}
 
-	erb :list
+	erb :payments
 end
 
 post '/' do
 	who	= validate('who', :who)
 	what	= validate('what', :what)
 	how	= validate('how', :how).gsub(',', '.')
+	list = validate('list', :list)
 
-	new_payment(who,what,how)
+	new_payment(who, what, how, list)
 
-	redirect '/show'
+	redirect "/paymets?list=#{list}"
 end

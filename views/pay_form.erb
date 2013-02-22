@@ -2,15 +2,8 @@
 
 <form action=/ method=post>
 	<table class=bold>
-		<tr><td>Who</td><td><%=
-
-		list = '<select name=who>'
-		Users.each do |u|
-			list += "<option value='#{u[:id]}'>#{u[:name]}</option>"
-		end
-		list += '</select>'
-
-		%></td></tr>
+		<tr><td>List</td><td><select name=list><%= @pay_form_erb[:lists_list] %></select></td></tr>
+		<tr><td>Who</td><td><select name=who><%= @pay_form_erb[:users_list] %></select></td></tr>
 		<tr><td>What</td><td><input type=text name=what></td></tr>
 		<tr><td>How much</td><td><input type=text name=how></td></tr>
 	</table>
