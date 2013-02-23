@@ -6,6 +6,12 @@ html {
 
 #menu {
 	color: #424280;
+	float: left;
+}
+#ohhi {
+	float: right;
+	color: #c53727;
+	font-size: 22px;
 }
 
 #container {
