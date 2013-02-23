@@ -3,14 +3,13 @@
 require 'sinatra'
 require 'sequel'
 
-Pass = "yourkey"
-
 DB = Sequel.connect('sqlite://db')
 
 DB.create_table?(:users) do
   primary_key	:id
 
   String	:name
+	String	:pass
 end
 
 DB.create_table?(:lists) do
@@ -35,8 +34,8 @@ Payments = DB[:payments]
 
 module Sinatra
 module Db
-	def new_user(who)
-		Users.insert(:name => who)
+	def new_user(who, pass)
+		Users.insert(:name => who, :pass => pass)
 	end
 
 	def new_list(name)
@@ -91,21 +90,11 @@ module Validate
 end
 
 module View
-	def build_users_list
-		list = ''
-
-		Users.each do |u|
-			list += "<option value='#{u[:id]}'>#{u[:name]}</option>"
-		end
-
-		list
-	end
-
-	def build_lists_list
+	def build_lists_list(default=1)
 		list = ''
 
 		Lists.each do |l|
-			list += "<option value='#{l[:id]}'>#{l[:name]}</option>"
+			list += "<option value='#{l[:id]}'#{" selected='selected'" if default.to_i == l[:id]} >#{l[:name]}</option>"
 		end
 
 		list
@@ -170,6 +159,19 @@ module View
 		table
 	end
 end
+
+module Auth
+	def authenticate!(user, pass)
+		res = Users.where(:name => user, :pass => pass)
+		if res.count.nonzero?
+			session[:user] = {:name => user, :id => res.first[:id]}
+		end
+	end
+
+	def authenticated?
+		not session[:user].nil?
+	end
+end
 end
 
 configure do
@@ -177,22 +179,42 @@ configure do
 	helpers Sinatra::DebtMatrix
 	helpers Sinatra::Validate
 	helpers Sinatra::View
+	helpers Sinatra::Auth
 
 	set :server, :puma
+	set :port, 1234
 	enable :sessions
 end
 
 before do
-	pass if request.path_info.split('?')[0].match(/^\/new_user|^\/new_list|^\/auth/)
+	pass if request.path_info.split('?')[0].match(/^\/first_config|^\/auth/)
 
-	redirect '/auth' if session[:auth].nil?
-	redirect '/new_user?none=y' if Users.count.zero?
-	redirect '/new_list?none=y' if Lists.count.zero?
+	#todo check admin
+	redirect '/first_config' if Users.count.zero? #which means no admin user.
+	redirect '/auth' if session[:user].nil?
 end
 
 get '/' do
-	@pay_form_erb = { :lists_list => build_lists_list, :users_list => build_users_list }
+	@pay_form_erb = { :lists_list => build_lists_list }
 	erb :pay_form
+end
+
+get '/first_config' do
+	erb :first_config
+end
+
+post '/first_config' do
+	admin_pass = validate('admin password', :admin_pass)
+	user = validate('first user', :user)
+	pass = validate('first user password', :pass)
+	list = validate('first list', :list)
+
+	new_user('admin', admin_pass)
+	new_user(user, pass)
+
+	new_list(list)
+
+	redirect '/auth'
 end
 
 get '/auth' do
@@ -201,10 +223,12 @@ get '/auth' do
 end
 
 post '/auth' do
+	user = validate('username', :user)
 	pass = validate('passphrase', :pass)
 
-	if pass == Pass
-		session[:auth] = 'x'
+	session[:user] = authenticate!(user, pass)
+
+	if authenticated?
 		redirect '/'
 	else
 		@fail_erb = {
@@ -216,31 +240,24 @@ post '/auth' do
 	end
 end
 
-get '/new_user' do
-	first = (params['none'] == 'y' ? true : false)
-
-	@new_user_erb = { :first => first }
-
+get '/admin/new_user' do
 	erb :new_user
 end
 
-post '/new_user' do
-	who = validate('who',  :who)
+post '/admin/new_user' do
+	who = validate('who',  :user)
+	pass = validate('password',  :pass)
 
-	new_user(who)
+	new_user(who, pass)
 
 	redirect '/'
 end
 
-get '/new_list' do
-	first = (params['none'] == 'y' ? true : false)
-
-	@new_list_erb = { :first => first }
-
+get '/admin/new_list' do
 	erb :new_list
 end
 
-post '/new_list' do
+post '/admin/new_list' do
 	name = validate('name',  :name)
 
 	new_list(name)
@@ -274,7 +291,7 @@ get '/payments' do
 	avg_tot = (tot / users_n).round(2)
 
 	@payments_erb = {
-		:lists_list => build_lists_list,
+		:lists_list => build_lists_list(list),
 		:period_list	=> build_period_list,
 		:summary_table	=> build_summary_table(ind_tot, avg_tot),
 		:payments_table	=> build_payments_table(payments),
@@ -285,12 +302,16 @@ get '/payments' do
 end
 
 post '/' do
-	who	= validate('who', :who)
+	list = validate('list', :list)
 	what	= validate('what', :what)
 	how	= validate('how', :how).gsub(',', '.')
-	list = validate('list', :list)
 
-	new_payment(who, what, how, list)
+	new_payment(session[:user][:id], what, how, list)
 
 	redirect "/payments?list=#{list}"
+end
+
+get '/logout' do
+	session.clear
+	redirect '/auth'
 end

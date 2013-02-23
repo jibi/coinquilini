@@ -1,8 +1,9 @@
 <div id=title>New User</div>
 
-<%= 'You need to specify at least one user' if @new_user_erb[:first] %>
-
-<form action=/new_user method=post>
-	User <input type=text name=who>
+<form action=/admin/new_user method=post>
+	<table class=bold>
+		<tr><td>User</td><td><input type=text name=user></td></tr>
+		<tr><td>Passphrase</td><td><input type=password name=pass></td></tr>
+	</table>
 	<input type=submit value='Add'>
 </form>
