@@ -195,6 +195,15 @@ before do
 	redirect '/auth' if session[:user].nil?
 end
 
+before '/admin/*' do
+	@fail_erb = {
+		:error => 'Admin area.',
+		:msg	=> "You are not admin"
+	}
+
+	halt erb(:fail) if session[:user][:id] != 1
+end
+
 get '/' do
 	@pay_form_erb = { :lists_list => build_lists_list }
 	erb :pay_form
