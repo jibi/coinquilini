@@ -9,7 +9,7 @@ DB.create_table?(:users) do
   primary_key	:id
 
   String	:name
-	String	:pass
+	String	:password
 end
 
 DB.create_table?(:lists) do
@@ -20,11 +20,12 @@ end
 
 DB.create_table?(:payments) do
   primary_key	:id
-  foreign_key	:who, :users
+
+  foreign_key	:user, :users
   foreign_key	:list, :lists
 
   String	:what
-  Float		:how
+  Float		:sum
   Integer	:date
 end
 
@@ -34,8 +35,8 @@ Payments = DB[:payments]
 
 module Sinatra
 module Db
-	def new_user(who, pass)
-		Users.insert(:name => who, :pass => pass)
+	def new_user(name, password)
+		Users.insert(:name => name, :password => password)
 	end
 
 	def new_list(name)
@@ -43,15 +44,15 @@ module Db
 	end
 
 	def get_distinct_users
-		Payments.select(:who).distinct
+		Payments.select(:user).distinct
 	end
 
-	def new_payment(who, what, how, list)
-		Payments.insert(:who => who, :what => what, :how => how, :date => Time.now.to_i, :list => list)
+	def new_payment(user, what, sum, list)
+		Payments.insert(:user => user, :what => what, :sum => sum, :date => Time.now.to_i, :list => list)
 	end
 
 	def get_payments(list, start_t, end_t)
-		Payments.join(:users, :id => :who).where(:date => (start_t .. end_t), :list => list)
+		 Payments.join(:users, :id => :user).where(:date => (start_t .. end_t), :list => list)
 	end
 end
 
@@ -132,10 +133,10 @@ module View
 		c = 0
 
 		payments.each do |p|
-			table += '<tr' + (c.even? ? ' class=alt' : '') + 
-				'><td>' + Time.at(p[:date]).strftime('%d %b, %H:%M') + 
-				'</td><td>' + p[:name] + '</td><td>' + p[:what] + 
-				'</td><td>' + p[:how].to_s + '<td></td></tr>'
+			table += '<tr' + (c.even? ? ' class=alt' : '') +
+				'><td>' + Time.at(p[:date]).strftime('%d %b, %H:%M') +
+				'</td><td>' + p[:name] + '</td><td>' + p[:what] +
+				'</td><td>' + p[:sum].to_s + '<td></td></tr>'
 
 			c = c + 1
 		end
@@ -161,10 +162,10 @@ module View
 end
 
 module Auth
-	def authenticate!(user, pass)
-		res = Users.where(:name => user, :pass => pass)
+	def authenticate!(name, password)
+		res = Users.where(:name => name, :password => password)
 		if res.count.nonzero?
-			session[:user] = {:name => user, :id => res.first[:id]}
+			session[:user] = {:name => name, :id => res.first[:id]}
 		end
 	end
 
@@ -204,13 +205,13 @@ get '/first_config' do
 end
 
 post '/first_config' do
-	admin_pass = validate('admin password', :admin_pass)
-	user = validate('first user', :user)
-	pass = validate('first user password', :pass)
+	admin_password = validate('admin password', :admin_password)
+	name = validate('first user name', :name)
+	password = validate('first user password', :password)
 	list = validate('first list', :list)
 
-	new_user('admin', admin_pass)
-	new_user(user, pass)
+	new_user('admin', admin_password)
+	new_user(name, password)
 
 	new_list(list)
 
@@ -223,10 +224,10 @@ get '/auth' do
 end
 
 post '/auth' do
-	user = validate('username', :user)
-	pass = validate('passphrase', :pass)
+	name = validate('username', :name)
+	password = validate('password', :password)
 
-	session[:user] = authenticate!(user, pass)
+	session[:user] = authenticate!(name, password)
 
 	if authenticated?
 		redirect '/'
@@ -245,10 +246,10 @@ get '/admin/new_user' do
 end
 
 post '/admin/new_user' do
-	who = validate('who',  :user)
-	pass = validate('password',  :pass)
+	name = validate('name',  :name)
+	password = validate('password',  :password)
 
-	new_user(who, pass)
+	new_user(name, password)
 
 	redirect '/'
 end
@@ -258,7 +259,7 @@ get '/admin/new_list' do
 end
 
 post '/admin/new_list' do
-	name = validate('name',  :name)
+	name = validate('list name',  :name)
 
 	new_list(name)
 
@@ -282,8 +283,8 @@ get '/payments' do
 
 	payments = get_payments(list, start_t, end_t)
 	payments.each do |p|
-		ind_tot[p[:name]] += p[:how].to_f.round(2)
-		tot += p[:how].to_f.round 2
+		ind_tot[p[:name]] += p[:sum].to_f.round(2)
+		tot += p[:sum].to_f.round 2
 	end
 
 	debtmatrix = calc_debtmatrix ind_tot
@@ -304,9 +305,9 @@ end
 post '/' do
 	list = validate('list', :list)
 	what	= validate('what', :what)
-	how	= validate('how', :how).gsub(',', '.')
+	sum	= validate('sum', :sum).gsub(',', '.')
 
-	new_payment(session[:user][:id], what, how, list)
+	new_payment(session[:user][:id], what, sum, list)
 
 	redirect "/payments?list=#{list}"
 end
@@ -315,3 +316,4 @@ get '/logout' do
 	session.clear
 	redirect '/auth'
 end
+
