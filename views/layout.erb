@@ -4,6 +4,7 @@
 		<link rel=stylesheet href=/style.css type=text/css>
 	</head>
 	<body>
+		<div id=header>
 		<% if not session[:user].nil? %>
 			<div id=menu>
 			<a href=/>Add Payment</a> |
@@ -19,9 +20,9 @@
 
 			<div id=ohhi>Oh, hi <%= session[:user][:name] %></div><br>
 		<% end %>
-		<div id=body>
-			<%= yield %>
 		</div>
+		<div id=body><%= yield %></div>
+		<div id=footer>Coinquilini, manage payments like a pro.<br>© Jibi 2013.</div>
 	</body>
 </html>
 

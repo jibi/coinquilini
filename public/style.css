@@ -50,6 +50,11 @@ html {
 	border-bottom: 1px solid #b02010;
 }
 
+#footer {
+	text-align: right;
+	color: #678;
+}
+
 select {
 	background-color: #ffe;
 	font-size: 11px;
@@ -83,7 +88,7 @@ input[type=submit]:hover {
 input[type=text], input[type=password] {
 	padding-left: 8px;
 	border: 1px solid #e0e0e0;
-	height: 32px; 
+	height: 32px;
 }
 
 input[type=text]:hover, input[type=password]:hover {
