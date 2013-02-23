@@ -8,13 +8,14 @@ html {
 	color: #424280;
 	float: left;
 }
+
 #ohhi {
 	float: right;
 	color: #c53727;
 	font-size: 22px;
 }
 
-#container {
+#body {
 	background-color: whitesmoke;
 	width: 400px;
 	min-height: 240px;
