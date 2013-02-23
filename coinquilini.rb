@@ -190,7 +190,6 @@ end
 before do
 	pass if request.path_info.split('?')[0].match(/^\/first_config|^\/auth/)
 
-	#todo check admin
 	redirect '/first_config' if Users.count.zero? #which means no admin user.
 	redirect '/auth' if session[:user].nil?
 end
@@ -291,6 +290,16 @@ get '/payments' do
 		  Time.mktime(year, month + 1)).to_i
 
 	payments = get_payments(list, start_t, end_t)
+	
+	if payments.count.zero?
+		@fail_erb = {
+			:error => 'There\'re are no payments :(',
+			:msg	=> 'Go <a href=/>back</a>'
+		}
+
+		halt erb(:fail)
+	end
+
 	payments.each do |p|
 		ind_tot[p[:name]] += p[:sum].to_f.round(2)
 		tot += p[:sum].to_f.round 2
