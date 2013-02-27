@@ -136,7 +136,7 @@ module View
 			table += '<tr' + (c.even? ? ' class=alt' : '') +
 				'><td>' + Time.at(p[:date]).strftime('%d %b, %H:%M') +
 				'</td><td>' + p[:name] + '</td><td>' + p[:what] +
-				'</td><td>' + p[:sum].to_s + '<td></td></tr>'
+				'</td><td>' + p[:sum].to_s + '</td></tr>'
 
 			c = c + 1
 		end
@@ -151,7 +151,7 @@ module View
 		debts.each do |d|
 			table += '<tr' + (c.even? ? ' class=alt' : '') +
 				'><td>' + d[:from] +
-				'</td><td>' + d[:what].to_s + '</td><td>' + d[:to] + '<td></td></tr>'
+				'</td><td>' + d[:what].to_s + '</td><td>' + d[:to] + '</td></tr>'
 
 			c = c + 1
 

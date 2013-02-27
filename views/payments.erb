@@ -1,5 +1,15 @@
 <script type="text/javascript">
 	document.getElementById("body").style.width = "800px";
+
+	function
+	toggleShow(checkbox, what) {
+		el = document.getElementById(checkbox.name);
+		if (checkbox.checked) {
+			el.style.display = 'block';
+		} else {
+			el.style.display = 'none';
+		}
+	}
 </script>
 
 <form>
@@ -8,22 +18,25 @@
 	<input type=submit value='Update'>
 </form>
 
-<div id=title>Summary</div><br>
+Summary:  <input name="summary"  type="checkbox" checked="checked" onClick='toggleShow(this, "summary");'>
+Payments: <input name="payments" type="checkbox" checked="checked" onClick='toggleShow(this, "payments");'>
+Payme:    <input name="payme"    type="checkbox" checked="checked" onClick='toggleShow(this, "payme");'>
+
+<div id='summary'><div id=title>Summary</div><br>
 <table class=pay_table>
 	<tr><th>Who</th><th>How much</th><th>Diff</th></tr>
 	<%= @payments_erb[:summary_table] %>
-</table>
-<br><br>
+</table></div><br>
 
-<div id=title>Payments</div><br>
+<div id='payments'><div id=title>Payments</div><br>
 <table class=pay_table>
 	<tr><th>When</th><th>Who</th><th>What</th><th>How much</th></tr>
 	<%= @payments_erb[:payments_table] %>
-</table>
+</table></div><br>
 
-<div id=title>Please pay me</div><br>
+<div id=payme><div id=title>Please pay me</div><br>
 <table class=pay_table>
 	<tr><th>Who</th><th>Need to pay</th><th>To</th></tr>
 	<%= @payments_erb[:payme_table] %>
-</table>
+</table></div><br>
 

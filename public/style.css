@@ -138,6 +138,10 @@ a:hover {
 	font-size: 11px;
 }
 
+#summary, #payments, #payme {
+	display: block;
+}
+
 table {
 	margin: 4px auto;
 }
@@ -156,6 +160,7 @@ table {
 
 .pay_table tr td {
 	padding: 2px 2px 2px 8px;
+	border: 1px solid #48f;
 }
 
 .pay_table tr.alt td {
