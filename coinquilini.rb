@@ -43,8 +43,8 @@ module Db
 		Lists.insert(:name => name)
 	end
 
-	def get_distinct_users
-		Payments.select(:user).distinct
+	def get_distinct_users(list, start_t, end_t)
+		Payments.select(:user).where(:date => (start_t .. end_t), :list => list).distinct
 	end
 
 	def new_payment(user, what, sum, list)
@@ -283,11 +283,11 @@ get '/payments' do
 	period   = params["period"] || Time.now.strftime("%Y %m")
 	year     = period[0..3].to_i
 	month    = period[5..6].to_i
-	users_n  = get_distinct_users.count
 
 	start_t  = Time.mktime(year, month).to_i
 	end_t    = (month.eql?(12) ? Time.mktime(year + 1) : Time.mktime(year, month + 1)).to_i
 
+	users_n  = get_distinct_users(list, start_t, end_t).count
 	payments = get_payments(list, start_t, end_t)
 	
 	if payments.count.zero?
