@@ -52,18 +52,16 @@ module Db
 	end
 
 	def get_payments(list, start_t, end_t)
-		Payments.join(:users, :user_id => :payment_user) #.where(:payment_date => (start_t .. end_t), :payment_list => list)
+		Payments.join(:users, :user_id => :payment_user).where(:payment_date => (start_t .. end_t), :payment_list => list)
 	end
 
-	def delete_payment(pid, uid, lid)
-		return -1 if not uid.to_i.eql?(session[:user][:id])
+	def delete_payment(pid)
+		p = Payments.select.where(:payment_id => pid)
 
-		p = Payments.select.where(:payment_id => pid, :payment_user => uid, :payment_list => lid)
-
-		return -1 if p.count.zero?
+		raise 'No such payment' if p.count.zero?
+		raise 'Cannot delete this payment (it\'s not yours)' if not p.first[:payment_user].to_i.eql?(session[:user][:id])
 
 		p.delete
-		return 0
 	end
 end
 
@@ -351,20 +349,19 @@ end
 
 get '/delete' do
 	pid = validate('payement id', :pid)
-	uid = validate('payement id', :uid)
-	lid = validate('payement id', :lid)
 
-	if delete_payment(pid, uid, lid).eql?(-1)
+	begin
+		delete_payment(pid).eql?(-1)
+	rescue Exception => e
 		@fail_erb = {
 			:error => 'Fail deleting payment.',
-			:msg	=> 'Maybe it doesn\'t exist (or it\'s not yours). Go <a href=/>back</a>'
+			:msg	=> e.message + '<br>Go <a href=/>back</a>'
 		}
 
 		halt erb(:fail)
-	else
-		redirect '/'
 	end
 
+	redirect '/'
 end
 
 get '/logout' do
