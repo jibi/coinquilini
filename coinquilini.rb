@@ -322,6 +322,15 @@ post '/' do
 	what = validate('what', :what)
 	sum  = validate('sum', :sum).gsub(',', '.')
 
+	if sum.to_i < 0
+		@fail_erb = {
+			:error => 'Negative sum.',
+			:msg	=> 'Doesn\'t make sense. Go <a href=/>back</a>'
+		}
+
+		halt erb(:fail)
+	end
+
 	new_payment(session[:user][:id], what, sum, list)
 
 	redirect "/payments?list=#{list}"
