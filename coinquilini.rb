@@ -44,22 +44,26 @@ module Db
 	end
 
 	def get_distinct_users(list, start_t, end_t)
-		Payments.select(:payment_user).where(:payment_date => (start_t .. end_t), :payment_list => list).distinct
+		Payments.select(:payment_user).where(:payment_date =>
+		  (start_t .. end_t), :payment_list => list).distinct
 	end
 
 	def new_payment(user, what, sum, list)
-		Payments.insert(:payment_user => user, :payment_what => what, :payment_sum => sum, :payment_date => Time.now.to_i, :payment_list => list)
+		Payments.insert(:payment_user => user, :payment_what => what,
+		  :payment_sum => sum, :payment_date => Time.now.to_i, :payment_list => list)
 	end
 
 	def get_payments(list, start_t, end_t)
-		Payments.join(:users, :user_id => :payment_user).where(:payment_date => (start_t .. end_t), :payment_list => list)
+		Payments.join(:users, :user_id => :payment_user).
+		  where(:payment_date => (start_t .. end_t), :payment_list => list)
 	end
 
 	def delete_payment(pid)
 		p = Payments.select.where(:payment_id => pid)
 
 		raise 'No such payment' if p.count.zero?
-		raise 'Cannot delete this payment (it\'s not yours)' if not p.first[:payment_user].to_i.eql?(session[:user][:id])
+		raise 'Cannot delete this payment (it\'s not yours)' if
+		  not p.first[:payment_user].to_i.eql?(session[:user][:id])
 
 		p.delete
 	end
@@ -80,7 +84,8 @@ module DebtMatrix
 		exp[max_recv[0]] -= min_recv[1].abs
 		exp[min_recv[0]] = 0
 
-		debts << { :from => min_recv[0], :to => max_recv[0], :what => min_recv[1].abs.round(2)}
+		debts << { :from => min_recv[0], :to => max_recv[0],
+		  :what => min_recv[1].abs.round(2)}
 
 		calc_debtmatrix exp, debts
 	end
@@ -104,7 +109,9 @@ module View
 		list = ''
 
 		Lists.each do |l|
-			list += "<option value='#{l[:list_id]}'#{" selected='selected'" if default.to_i == l[:list_id]} >#{l[:list_name]}</option>"
+			list += "<option value='#{l[:list_id]}'" +
+			  "#{" selected='selected'" if 
+			    default.to_i == l[:list_id]} >#{l[:list_name]}</option>"
 		end
 
 		list
@@ -113,7 +120,8 @@ module View
 	def build_period_list
 		list = ''
 
-		DB["SELECT DISTINCT strftime('%Y %m',payment_date, 'unixepoch') AS ym FROM payments"].each do |d|
+		DB["SELECT DISTINCT strftime('%Y %m',payment_date, 'unixepoch') " +
+		  "AS ym FROM payments"].each do |d|
 			list += "<option value='#{d[:ym]}'>#{d[:ym]}</option>"
 		end
 
@@ -146,8 +154,8 @@ module View
 				'><td>' + Time.at(p[:payment_date]).strftime('%d %b, %H:%M') +
 				'</td><td>' + p[:user_name] + '</td><td>' + p[:payment_what] +
 				'</td><td>' + p[:payment_sum].to_s + '</td>' +
-				'</td><td><a href=/delete?pid=' + p[:payment_id].to_s + '&uid=' + p[:payment_user].to_s +
-				'&lid=' + p[:payment_list].to_s + '>X</a></td></tr>'
+				'</td><td><a href=/delete?pid=' + p[:payment_id].to_s + '&uid=' +
+				p[:payment_user].to_s + '&lid=' + p[:payment_list].to_s + '>X</a></td></tr>'
 
 			c = c + 1
 		end
@@ -252,7 +260,7 @@ post '/auth' do
 	else
 		@fail_erb = {
 			:error => 'Wrong passphrase',
-			:msg	=> "But you can try <a href=/auth>again</a>"
+			:msg   => "But you can try <a href=/auth>again</a>"
 		}
 
 		halt erb(:fail)
@@ -303,7 +311,7 @@ get '/payments' do
 	if payments.count.zero?
 		@fail_erb = {
 			:error => 'There\'re are no payments :(',
-			:msg	=> 'Go <a href=/>back</a>'
+			:msg   => 'Go <a href=/>back</a>'
 		}
 
 		halt erb(:fail)
@@ -311,7 +319,7 @@ get '/payments' do
 
 	payments.each do |p|
 		ind_tot[p[:user_name]] += p[:payment_sum].to_f.round(2)
-		tot += p[:payment_sum].to_f.round 2
+		tot                    += p[:payment_sum].to_f.round(2)
 	end
 
 	debtmatrix = calc_debtmatrix ind_tot
@@ -336,7 +344,7 @@ post '/' do
 	if sum.to_i < 0
 		@fail_erb = {
 			:error => 'Negative sum.',
-			:msg	=> 'Doesn\'t make sense. Go <a href=/>back</a>'
+			:msg   => 'Doesn\'t make sense. Go <a href=/>back</a>'
 		}
 
 		halt erb(:fail)
@@ -355,7 +363,7 @@ get '/delete' do
 	rescue Exception => e
 		@fail_erb = {
 			:error => 'Fail deleting payment.',
-			:msg	=> e.message + '<br>Go <a href=/>back</a>'
+			:msg   => e.message + '<br>Go <a href=/>back</a>'
 		}
 
 		halt erb(:fail)
