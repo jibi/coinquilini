@@ -6,27 +6,27 @@ require 'sequel'
 DB = Sequel.connect('sqlite://db')
 
 DB.create_table?(:users) do
-	primary_key :id
+	primary_key :user_id
 
-	String      :name
-	String      :password
+	String      :user_name
+	String      :user_password
 end
 
 DB.create_table?(:lists) do
-	primary_key :id
+	primary_key :list_id
 
-	String      :name
+	String      :list_name
 end
 
 DB.create_table?(:payments) do
-	primary_key :id
+	primary_key :payment_id
 
-	foreign_key :user, :users
-	foreign_key :list, :lists
+	foreign_key :payment_user, :users
+	foreign_key :payment_list, :lists
 
-	String      :what
-	Float       :sum
-	Integer     :date
+	String      :payment_what
+	Float       :payment_sum
+	Integer     :payment_date
 end
 
 Users    = DB[:users]
@@ -36,23 +36,34 @@ Payments = DB[:payments]
 module Sinatra
 module Db
 	def new_user(name, password)
-		Users.insert(:name => name, :password => password)
+		Users.insert(:user_name => name, :user_password => password)
 	end
 
 	def new_list(name)
-		Lists.insert(:name => name)
+		Lists.insert(:list_name => name)
 	end
 
 	def get_distinct_users(list, start_t, end_t)
-		Payments.select(:user).where(:date => (start_t .. end_t), :list => list).distinct
+		Payments.select(:payment_user).where(:payment_date => (start_t .. end_t), :payment_list => list).distinct
 	end
 
 	def new_payment(user, what, sum, list)
-		Payments.insert(:user => user, :what => what, :sum => sum, :date => Time.now.to_i, :list => list)
+		Payments.insert(:payment_user => user, :payment_what => what, :payment_sum => sum, :payment_date => Time.now.to_i, :payment_list => list)
 	end
 
 	def get_payments(list, start_t, end_t)
-		 Payments.join(:users, :id => :user).where(:date => (start_t .. end_t), :list => list)
+		Payments.join(:users, :user_id => :payment_user) #.where(:payment_date => (start_t .. end_t), :payment_list => list)
+	end
+
+	def delete_payment(pid, uid, lid)
+		return -1 if not uid.to_i.eql?(session[:user][:id])
+
+		p = Payments.select.where(:payment_id => pid, :payment_user => uid, :payment_list => lid)
+
+		return -1 if p.count.zero?
+
+		p.delete
+		return 0
 	end
 end
 
@@ -95,7 +106,7 @@ module View
 		list = ''
 
 		Lists.each do |l|
-			list += "<option value='#{l[:id]}'#{" selected='selected'" if default.to_i == l[:id]} >#{l[:name]}</option>"
+			list += "<option value='#{l[:list_id]}'#{" selected='selected'" if default.to_i == l[:list_id]} >#{l[:list_name]}</option>"
 		end
 
 		list
@@ -104,7 +115,7 @@ module View
 	def build_period_list
 		list = ''
 
-		DB["SELECT DISTINCT strftime('%Y %m',date, 'unixepoch') AS ym FROM payments"].each do |d|
+		DB["SELECT DISTINCT strftime('%Y %m',payment_date, 'unixepoch') AS ym FROM payments"].each do |d|
 			list += "<option value='#{d[:ym]}'>#{d[:ym]}</option>"
 		end
 
@@ -134,9 +145,11 @@ module View
 
 		payments.each do |p|
 			table += '<tr' + (c.even? ? ' class=alt' : '') +
-				'><td>' + Time.at(p[:date]).strftime('%d %b, %H:%M') +
-				'</td><td>' + p[:name] + '</td><td>' + p[:what] +
-				'</td><td>' + p[:sum].to_s + '</td></tr>'
+				'><td>' + Time.at(p[:payment_date]).strftime('%d %b, %H:%M') +
+				'</td><td>' + p[:user_name] + '</td><td>' + p[:payment_what] +
+				'</td><td>' + p[:payment_sum].to_s + '</td>' +
+				'</td><td><a href=/delete?pid=' + p[:payment_id].to_s + '&uid=' + p[:payment_user].to_s +
+				'&lid=' + p[:payment_list].to_s + '>X</a></td></tr>'
 
 			c = c + 1
 		end
@@ -163,9 +176,9 @@ end
 
 module Auth
 	def authenticate!(name, password)
-		res = Users.where(:name => name, :password => password)
+		res = Users.where(:user_name => name, :user_password => password)
 		if res.count.nonzero?
-			session[:user] = {:name => name, :id => res.first[:id]}
+			session[:user] = {:name => name, :id => res.first[:user_id]}
 		end
 	end
 
@@ -274,7 +287,7 @@ post '/admin/new_list' do
 end
 
 get '/payments' do
-	list     = params[:list] || Lists.first[:id]
+	list     = params[:list] || Lists.first[:list_id]
 
 	ind_tot  = Hash.new(0) # per user total
 	tot      = 0 # global total
@@ -299,8 +312,8 @@ get '/payments' do
 	end
 
 	payments.each do |p|
-		ind_tot[p[:name]] += p[:sum].to_f.round(2)
-		tot += p[:sum].to_f.round 2
+		ind_tot[p[:user_name]] += p[:payment_sum].to_f.round(2)
+		tot += p[:payment_sum].to_f.round 2
 	end
 
 	debtmatrix = calc_debtmatrix ind_tot
@@ -334,6 +347,24 @@ post '/' do
 	new_payment(session[:user][:id], what, sum, list)
 
 	redirect "/payments?list=#{list}"
+end
+
+get '/delete' do
+	pid = validate('payement id', :pid)
+	uid = validate('payement id', :uid)
+	lid = validate('payement id', :lid)
+
+	if delete_payment(pid, uid, lid).eql?(-1)
+		@fail_erb = {
+			:error => 'Fail deleting payment.',
+			:msg	=> 'Maybe it doesn\'t exist (or it\'s not yours). Go <a href=/>back</a>'
+		}
+
+		halt erb(:fail)
+	else
+		redirect '/'
+	end
+
 end
 
 get '/logout' do
