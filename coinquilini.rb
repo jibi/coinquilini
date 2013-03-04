@@ -183,7 +183,6 @@ configure do
 	helpers Sinatra::Auth
 
 	set :server, :puma
-	set :port, 1234
 	enable :sessions
 end
 
