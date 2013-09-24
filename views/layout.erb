@@ -1,34 +1,64 @@
 <html>
 	<head>
 		<title>Coinquilini</title>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<!-- Bootstrap -->
+		<link href="/css/bootstrap.min.css" rel="stylesheet" media="screen">
 		<link rel=stylesheet href=/style.css type=text/css>
+
+		<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+		<!--[if lt IE 9]>
+			<script src="../../assets/js/html5shiv.js"></script>
+			<script src="../../assets/js/respond.min.js"></script>
+		<![endif]-->
 	</head>
 	<body>
-		<div id=container>
 
-			<div id=header>
-			<% if not session[:user].nil? %>
-				<div id=menu>
-				<a href=/>Add Payment</a> |
-				<a href=/payments>Show Payments</a>
-
-				<% if session[:user][:id] == 1 %>
-					| <a href=/admin/new_user>Add an User</a> |
-					<a href=/admin/new_list>Add a List</a>
-				<% end %>
-
-				| <a href=/logout>Logout</a>
+	<% if not session[:user].nil? %>
+		<div class="navbar navbar-default">
+			<div class="container">
+				<div class="navbar-header">
+					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+						<span class="icon-bar"></span>
+					</button>
+					<a class="navbar-brand">Coinquilini™</a>
 				</div>
+				<div class="navbar-collapse collapse">
+					<ul class="nav navbar-nav">
+						<%= menu_item("/", "Add Payment") %>
+						<%= menu_item("/payments", "Show Payment") %>
 
-				<div id=ohhi>Oh, hi <%= session[:user][:name] %></div><br>
-			<% end %>
+						<% if session[:user][:id] == 1 %>
+							<%= menu_item("/admin/new_user", "Add an User") %>
+							<%= menu_item("/admin/new_list", "Add a List") %>
+						<% end %>
+
+					</ul>
+					<ul class="nav navbar-nav navbar-right">
+						<%= menu_item("/logout", "Logout") %>
+					</ul>
+				</div>
 			</div>
-
-			<div id=body><%= yield %></div>
-			<br>
-
-			<div id=footer>Coinquilini, manage payments like a pro.<br>© Jibi 2013.</div>
 		</div>
+	<% end %>
+
+
+	<div class=container>
+		<% if session[:user] && session[:user][:name] %>
+			<h3>Oh, hi <%= session[:user][:name] %></h3><br>
+		<% end %>
+
+		<%= yield %>
+	</div>
+
+	<!--div id=footer>Coinquilini, manage payments like a pro.<br>© Jibi 2013.</div-->
+
+	<script src="//code.jquery.com/jquery.js"></script>
+	<script src="js/bootstrap.min.js"></script>
+	<script src="coinquilini.js"></script>
+
 	</body>
 </html>
 

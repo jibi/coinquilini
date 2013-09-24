@@ -2,6 +2,7 @@
 
 require 'sinatra'
 require 'sequel'
+require 'json'
 
 DB = Sequel.connect('sqlite://db')
 
@@ -93,12 +94,12 @@ end
 
 module Validate
 	def validate name, param
-		@fail_erb = {
-			:error => 'Something\'s missing.',
+		response = {
+			:status => 'error',
 			:msg   => "Please specify #{name}"
 		}
 
-		halt erb(:fail) if params[param].nil? or params[param].empty?
+		halt response.to_json if params[param].nil? or params[param].empty?
 
 		params[param]
 	end
@@ -135,9 +136,8 @@ module View
 		ind_tot.each do |k,v|
 			d = (v - avg_tot).round(2)
 
-			summary += '<tr ' + (c.even? ? ' class=alt' : '') + '><td>' + k.to_s +
-				'</td><td>' + v.round(2).to_s + '</td><td class=' +
-				(d >= 0 ? 'green' : 'red') + '>' + d.to_s + '</td></tr>'
+			summary += '<tr class=' + (d >= 0 ? 'success' : 'danger' ) + '><td>' + k.to_s +
+				'</td><td>' + v.round(2).to_s + '</td><td class=>' + d.to_s + '</td></tr>'
 
 			c = c + 1
 		end
@@ -178,6 +178,11 @@ module View
 
 		table
 	end
+
+	def menu_item(link, name)
+		active = (request.path_info == link ? "class=\"active\"" : "")
+		"<li #{active}><a href=\"#{link}\">#{name}</a></li>"
+	end
 end
 
 module Auth
@@ -202,6 +207,7 @@ configure do
 	helpers Sinatra::Auth
 
 	set :server, :puma
+	set :bind, "0.0.0.0"
 	enable :sessions
 end
 
@@ -310,8 +316,8 @@ get '/payments' do
 	
 	if payments.count.zero?
 		@fail_erb = {
-			:error => 'There\'re are no payments :(',
-			:msg   => 'Go <a href=/>back</a>'
+			:status => 'error',
+			:msg    => 'There are are no payments :(',
 		}
 
 		halt erb(:fail)
@@ -339,20 +345,25 @@ end
 post '/' do
 	list = validate('list', :list)
 	what = validate('what', :what)
-	sum  = validate('sum', :sum).gsub(',', '.')
+	sum  = validate('sum', :sum).gsub(',', '.').to_f
 
 	if sum.to_i < 0
-		@fail_erb = {
-			:error => 'Negative sum.',
-			:msg   => 'Doesn\'t make sense. Go <a href=/>back</a>'
+		response = {
+			:status => 'error',
+			:msg    => 'Negative sum.<br>Doesn\'t make sense.'
 		}
 
-		halt erb(:fail)
+		halt response.to_json
 	end
 
 	new_payment(session[:user][:id], what, sum, list)
 
-	redirect "/payments?list=#{list}"
+	response = {
+		:status => "ok",
+		:msg    => "Successfully added #{session[:user][:name]}'s payment:<br>#{sum}€ for #{what}"
+	}
+
+	response.to_json
 end
 
 get '/delete' do
