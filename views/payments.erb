@@ -34,6 +34,9 @@ toggleShow(checkbox, what) {
 	<button type="submit" class="btn btn-primary">Update</button>
 </form>
 
+<% if @payments_erb[:payments_table].nil? %>
+	<h2>No payments yet :(</h2>
+<% else %>
 <div class="checkbox-inline">
 	<label>
 		<input name="summary" type="checkbox" checked="checked" onClick='toggleShow(this, "summary");'> Summary
@@ -69,3 +72,4 @@ toggleShow(checkbox, what) {
 		<tr><th>Who</th><th>Need to pay</th><th>To</th></tr>
 		<%= @payments_erb[:payme_table] %>
 </table></div><br>
+<% end %>

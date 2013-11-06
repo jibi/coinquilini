@@ -313,31 +313,27 @@ get '/payments' do
 
 	users_n  = get_distinct_users(list, start_t, end_t).count
 	payments = get_payments(list, start_t, end_t)
-	
-	if payments.count.zero?
-		@fail_erb = {
-			:status => 'error',
-			:msg    => 'There are are no payments :(',
-		}
-
-		halt erb(:fail)
-	end
-
-	payments.each do |p|
-		ind_tot[p[:user_name]] += p[:payment_sum].to_f.round(2)
-		tot                    += p[:payment_sum].to_f.round(2)
-	end
-
-	debtmatrix = calc_debtmatrix ind_tot
-	avg_tot    = (tot / users_n).round(2)
 
 	@payments_erb = {
 		:lists_list     => build_lists_list(list),
 		:period_list    => build_period_list,
-		:summary_table  => build_summary_table(ind_tot, avg_tot),
-		:payments_table => build_payments_table(payments),
-		:payme_table    => build_payme_table(debtmatrix)
 	}
+	
+	if not payments.count.zero?
+		payments.each do |p|
+			ind_tot[p[:user_name]] += p[:payment_sum].to_f.round(2)
+			tot                    += p[:payment_sum].to_f.round(2)
+		end
+
+		debtmatrix = calc_debtmatrix ind_tot
+		avg_tot    = (tot / users_n).round(2)
+
+		@payments_erb.merge!({
+			:summary_table  => build_summary_table(ind_tot, avg_tot),
+			:payments_table => build_payments_table(payments),
+			:payme_table    => build_payme_table(debtmatrix)
+		})
+	end
 
 	erb :payments
 end
