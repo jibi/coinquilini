@@ -61,7 +61,7 @@ module Db
 
   def get_distinct_users(list, start_t, end_t)
     Payments.select(:payment_user).where(
-      :payment_date =>c(start_t .. end_t),
+      :payment_date => (start_t .. end_t),
       :payment_list => list
     ).distinct
   end
