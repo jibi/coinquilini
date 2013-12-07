@@ -127,7 +127,7 @@ module Db
         :debt_to     => d[:to],
         :debt_date   => start_t,
         :debt_amount => d[:what],
-        :debt_paid   => 0)
+        :debt_paid   => false)
     end
   end
 end
