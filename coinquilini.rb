@@ -30,14 +30,29 @@ DB.create_table?(:payments) do
   Integer     :payment_date
 end
 
+DB.create_table?(:debts) do
+  primary_key :debt_id
+
+  foreign_key :debt_from, :users
+  foreign_key :debt_to,   :users
+
+  Float       :debt_amount
+  Integer     :debt_date #actually just Year + month to integer
+  Bool        :debt_paid
+end
+
 Users    = DB[:users]
 Lists    = DB[:lists]
 Payments = DB[:payments]
+Debts    = DB[:debts]
 
 module Sinatra
 module Db
   def new_user(name, password)
-    Users.insert(:user_name => name, :user_password => password)
+    Users.insert(
+      :user_name     => name,
+      :user_password => password
+    )
   end
 
   def new_list(name)
@@ -45,13 +60,23 @@ module Db
   end
 
   def get_distinct_users(list, start_t, end_t)
-    Payments.select(:payment_user).where(:payment_date =>
-      (start_t .. end_t), :payment_list => list).distinct
+    Payments.select(:payment_user).where(
+      :payment_date =>c(start_t .. end_t),
+      :payment_list => list
+    ).distinct
   end
 
   def new_payment(user, what, sum, list)
-    Payments.insert(:payment_user => user, :payment_what => what,
-      :payment_sum => sum, :payment_date => Time.now.to_i, :payment_list => list)
+    Payments.insert(
+      :payment_user => user,
+      :payment_what => what,
+      :payment_sum  => sum,
+      :payment_date => Time.now.to_i,
+      :payment_list => list)
+  end
+
+  def get_user_name(user_id)
+    Users.select.where(:user_id => user_id).first[:user_name]
   end
 
   def get_payments(list, start_t, end_t)
@@ -68,10 +93,47 @@ module Db
 
     p.delete
   end
+
+  def set_paid_debt(debt_id)
+    Debts.select.where(:debt_id => debt_id).update(:debt_paid => true)
+  end
+
+  def saved_debts_table(start_t)
+    debts = Debts.select.where(:debt_date => start_t)
+    if debts.count.zero?
+      table = nil
+    else
+      table = []
+      debts.each do |d|
+        table << {
+          :debt_id => d[:debt_id],
+          :from    => d[:debt_from],
+          :to      => d[:debt_to],
+          :what    => d[:debt_amount],
+          :paid    => d[:debt_paid]
+        }
+      end
+    end
+
+    table
+  end
+
+  def store_debts_table(start_t, debts)
+    return if debts.nil?
+
+    debts.each do |d|
+      d[:debt_id] = Debts.insert(
+        :debt_from   => d[:from],
+        :debt_to     => d[:to],
+        :debt_date   => start_t,
+        :debt_amount => d[:what],
+        :debt_paid   => 0)
+    end
+  end
 end
 
 module DebtMatrix
-  def calc_debtmatrix exp, debts = []
+  def calc_debtmatrix(exp, debts = [])
     stat = {}
 
     exp = exp.reject { |k,v| v.zero? }
@@ -85,10 +147,13 @@ module DebtMatrix
     exp[max_recv[0]] -= min_recv[1].abs
     exp[min_recv[0]] = 0
 
-    debts << { :from => min_recv[0], :to => max_recv[0],
-      :what => min_recv[1].abs.round(2)}
+    debts << {
+      :from => min_recv[0],
+      :to   => max_recv[0],
+      :what => min_recv[1].abs.round(2)
+    }
 
-    calc_debtmatrix exp, debts
+    calc_debtmatrix(exp, debts)
   end
 end
 
@@ -96,7 +161,7 @@ module Validate
   def validate name, param
     response = {
       :status => 'error',
-      :msg   => "Please specify #{name}"
+      :msg    => "Please specify #{name}"
     }
 
     halt response.to_json if params[param].nil? or params[param].empty?
@@ -111,7 +176,7 @@ module View
 
     Lists.each do |l|
       list += "<option value='#{l[:list_id]}'" +
-        "#{" selected='selected'" if 
+        "#{" selected='selected'" if
           default.to_i == l[:list_id]} >#{l[:list_name]}</option>"
     end
 
@@ -168,12 +233,27 @@ module View
     c     = 0
 
     debts.each do |d|
-      table += '<tr' + (c.even? ? ' class=alt' : '') +
-        '><td>' + d[:from] +
-        '</td><td>' + d[:what].to_s + '</td><td>' + d[:to] + '</td></tr>'
+      table += '<tr' + (c.even? ? ' class=alt' : '') + '><td>' +
+        get_user_name(d[:from]) + '</td><td>' +
+        d[:what].to_s + '</td><td>' +
+        get_user_name(d[:to]) + '</td>'
 
+      if not @last_period
+        table += '<td id="debt_' + d[:debt_id].to_s + '">'
+        if d[:paid]
+          table += '<span style="color: #24de44" class="glyphicon glyphicon-ok"></span>'
+        else
+          if session[:user][:id] == d[:to]
+            table += ' <button type="button" class="btn btn-danger btn-xs" onClick="set_paid(' + d[:debt_id].to_s + ')">set paid.</button></td>'
+          else
+            table += '<span style="color: #fe2444" class="glyphicon glyphicon-remove"></span>'
+          end
+        end
+        table += "</td>"
+      end
+
+      table += '</tr>'
       c = c + 1
-
     end
 
     table
@@ -207,7 +287,7 @@ configure do
   helpers Sinatra::Auth
 
   set :server, :puma
-  set :bind, "0.0.0.0"
+  set :bind, '0.0.0.0'
   enable :sessions
 end
 
@@ -315,25 +395,34 @@ get '/payments' do
   payments = get_payments(list, start_t, end_t)
 
   @payments_erb = {
-    :lists_list     => build_lists_list(list),
-    :period_list    => build_period_list,
+    :lists_list  => build_lists_list(list),
+    :period_list => build_period_list,
   }
 
-  if not payments.count.zero?
-    payments.each do |p|
-      ind_tot[p[:user_name]] += p[:payment_sum].to_f.round(2)
-      tot                    += p[:payment_sum].to_f.round(2)
+  @last_period = Time.now.strftime("%Y %m").eql? period
+  @debtmatrix  = saved_debts_table(start_t)
+
+  if @debtmatrix.nil?
+    if not payments.count.zero?
+      payments.each do |p|
+        ind_tot[p[:user_id]] += p[:payment_sum].to_f.round(2)
+        tot                  += p[:payment_sum].to_f.round(2)
+      end
+
+      @debtmatrix = calc_debtmatrix(ind_tot)
+      avg_tot    = (tot / users_n).round(2)
     end
-
-    debtmatrix = calc_debtmatrix ind_tot
-    avg_tot    = (tot / users_n).round(2)
-
-    @payments_erb.merge!({
-      :summary_table  => build_summary_table(ind_tot, avg_tot),
-      :payments_table => build_payments_table(payments),
-      :payme_table    => build_payme_table(debtmatrix)
-    })
   end
+
+  if not @last_period and saved_debts_table(start_t).nil?
+    store_debts_table(start_t, @debtmatrix)
+  end
+
+  @payments_erb.merge!({
+    :summary_table  => build_summary_table(ind_tot, avg_tot),
+    :payments_table => build_payments_table(payments),
+    :payme_table    => build_payme_table(@debtmatrix)
+  })
 
   erb :payments
 end
@@ -359,6 +448,14 @@ post '/' do
     :msg    => "Successfully added #{session[:user][:name]}'s payment:<br>#{sum}€ for #{what}"
   }
 
+  response.to_json
+end
+
+post '/set_paid' do
+  debt_id = params[:debt_id]
+  set_paid_debt(debt_id)
+
+  response = { :status => "ok" }
   response.to_json
 end
 

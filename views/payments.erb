@@ -10,6 +10,30 @@ toggleShow(checkbox, what) {
 		el.style.display = 'none';
 	}
 }
+
+function
+set_paid(debt_id) {
+	var request = $.post("/set_paid", {debt_id: debt_id});
+
+	var request = $.ajax({
+		dataType: "json",
+		url: "/set_paid",
+		type: "POST",
+		data: { debt_id : debt_id }
+	});
+
+	request.done(function(data) {
+		$('#debt_' + debt_id).html('<span style="color: #24de44" class="glyphicon glyphicon-ok"></span>')
+	});
+
+	request.fail(function(jq_xhr, test_status) {
+		alert("Cannot set paid :(");
+	});
+
+
+	return false;
+}
+
 </script>
 
 <form class="form-horizontal" role="form">
@@ -69,7 +93,7 @@ toggleShow(checkbox, what) {
 
 <div id=payme><h2>Please pay me</h2>
 	<table class="table table-striped pay_table">
-		<tr><th>Who</th><th>Owes</th><th>To</th></tr>
+		<tr><th>Who</th><th>Owes</th><th>To</th><%= @last_period ?  '' : '<th>Paid?</th>' %></tr>
 		<%= @payments_erb[:payme_table] %>
 </table></div><br>
 <% end %>
