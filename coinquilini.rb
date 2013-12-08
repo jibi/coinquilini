@@ -185,12 +185,14 @@ module View
     list
   end
 
-  def build_period_list
+  def build_period_list(curr)
     list = ''
 
     DB["SELECT DISTINCT strftime('%Y %m',payment_date, 'unixepoch') " +
       "AS ym FROM payments ORDER BY ym DESC"].each do |d|
-      list += "<option value='#{d[:ym]}'>#{d[:ym]}</option>"
+      list += "<option value='#{d[:ym]}'"
+      list += " selected" if d[:ym].eql? curr
+      list += ">#{d[:ym]}</option>"
     end
 
     list
@@ -398,7 +400,7 @@ get '/payments' do
 
   @payments_erb = {
     :lists_list  => build_lists_list(list),
-    :period_list => build_period_list,
+    :period_list => build_period_list(period)
   }
 
   @last_period = Time.now.strftime("%Y %m").eql? period
