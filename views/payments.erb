@@ -1,41 +1,3 @@
-<script type="text/javascript">
-document.getElementById("body").style.width = "800px";
-
-function
-toggleShow(checkbox, what) {
-	el = document.getElementById(checkbox.name);
-	if (checkbox.checked) {
-		el.style.display = 'block';
-	} else {
-		el.style.display = 'none';
-	}
-}
-
-function
-set_paid(debt_id) {
-	var request = $.post("/set_paid", {debt_id: debt_id});
-
-	var request = $.ajax({
-		dataType: "json",
-		url: "/set_paid",
-		type: "POST",
-		data: { debt_id : debt_id }
-	});
-
-	request.done(function(data) {
-		$('#debt_' + debt_id).html('<span style="color: #24de44" class="glyphicon glyphicon-ok"></span>')
-	});
-
-	request.fail(function(jq_xhr, test_status) {
-		alert("Cannot set paid :(");
-	});
-
-
-	return false;
-}
-
-</script>
-
 <form class="form-horizontal" role="form">
 	<% if not @payments_erb[:lists_list].nil? %>
 		<div class="form-group">
@@ -95,4 +57,4 @@ set_paid(debt_id) {
 		<tr><th>Who</th><th>Owes</th><th>To</th><%= @payments_erb[:last_period] ?  '' : '<th>Paid?</th>' %></tr>
 		<%= @payments_erb[:payme_table] %>
 </table></div><br>
-
+<script type="text/javascript">document.getElementById("body").style.width = "800px";</script>

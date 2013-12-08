@@ -54,4 +54,36 @@ send_payment(form) {
 
 	return false;
 }
+function
+toggleShow(checkbox, what) {
+	el = document.getElementById(checkbox.name);
+	if (checkbox.checked) {
+		el.style.display = 'block';
+	} else {
+		el.style.display = 'none';
+	}
+}
+
+function
+set_paid(debt_id) {
+	var request = $.post("/set_paid", {debt_id: debt_id});
+
+	var request = $.ajax({
+		dataType: "json",
+		url: "/set_paid",
+		type: "POST",
+		data: { debt_id : debt_id }
+	});
+
+	request.done(function(data) {
+		$('#debt_' + debt_id).html('<span style="color: #24de44" class="glyphicon glyphicon-ok"></span>')
+	});
+
+	request.fail(function(jq_xhr, test_status) {
+		alert("Cannot set paid :(");
+	});
+
+
+	return false;
+}
 
