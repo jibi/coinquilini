@@ -1,64 +1,64 @@
 <html>
-	<head>
-		<title>Coinquilini</title>
-		<meta name="viewport" content="width=device-width, initial-scale=1.0">
-		<!-- Bootstrap -->
-		<link href="/css/bootstrap.min.css" rel="stylesheet" media="screen">
-		<link href="/css/coinquilini.css" rel="stylesheet">
+  <head>
+    <title>Coinquilini</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Bootstrap -->
+    <link href="/css/bootstrap.min.css" rel="stylesheet" media="screen">
+    <link href="/css/coinquilini.css" rel="stylesheet">
 
-		<!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
-		<!--[if lt IE 9]>
-			<script src="../../assets/js/html5shiv.js"></script>
-			<script src="../../assets/js/respond.min.js"></script>
-		<![endif]-->
-	</head>
-	<body>
+    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+      <script src="../../assets/js/html5shiv.js"></script>
+      <script src="../../assets/js/respond.min.js"></script>
+    <![endif]-->
+  </head>
+  <body>
 
-	<% if not session[:user].nil? %>
-		<div class="navbar navbar-default">
-			<div class="container">
-				<div class="navbar-header">
-					<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-						<span class="icon-bar"></span>
-					</button>
-					<a class="navbar-brand">Coinquilini™</a>
-				</div>
-				<div class="navbar-collapse collapse">
-					<ul class="nav navbar-nav">
-						<%= menu_item("/", "Add Payment") %>
-						<%= menu_item("/payments", "Show Payment") %>
+  <% if not session[:user].nil? %>
+    <div class="navbar navbar-default">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand">Coinquilini™</a>
+        </div>
+        <div class="navbar-collapse collapse">
+          <ul class="nav navbar-nav">
+            <%= menu_item("/", "Add Payment") %>
+            <%= menu_item("/payments", "Show Payment") %>
 
-						<% if session[:user][:id] == 1 %>
-							<%= menu_item("/admin/new_user", "Add an User") %>
-							<%= menu_item("/admin/new_list", "Add a List") %>
-						<% end %>
+            <% if session[:user][:id] == 1 %>
+              <%= menu_item("/admin/new_user", "Add an User") %>
+              <%= menu_item("/admin/new_list", "Add a List") %>
+            <% end %>
 
-					</ul>
-					<ul class="nav navbar-nav navbar-right">
-						<%= menu_item("/logout", "Logout") %>
-					</ul>
-				</div>
-			</div>
-		</div>
-	<% end %>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+            <%= menu_item("/logout", "Logout") %>
+          </ul>
+        </div>
+      </div>
+    </div>
+  <% end %>
 
 
-	<div class=container>
-		<% if session[:user] && session[:user][:name] %>
-			<h3>Oh, hi <%= session[:user][:name] %></h3><br>
-		<% end %>
+  <div class=container>
+    <% if session[:user] && session[:user][:name] %>
+      <h3>Oh, hi <%= session[:user][:name] %></h3><br>
+    <% end %>
 
-		<%= yield %>
-	</div>
+<%= yield %>
+  </div>
 
-	<!--div id=footer>Coinquilini, manage payments like a pro.<br>© Jibi 2013.</div-->
+  <!--div id=footer>Coinquilini, manage payments like a pro.<br>© Jibi 2013.</div-->
 
-	<script src="//code.jquery.com/jquery.js"></script>
-	<script src="js/bootstrap.min.js"></script>
-	<script src="js/coinquilini.js"></script>
+  <script src="//code.jquery.com/jquery.js"></script>
+  <script src="js/bootstrap.min.js"></script>
+  <script src="js/coinquilini.js"></script>
 
-	</body>
+  </body>
 </html>
 

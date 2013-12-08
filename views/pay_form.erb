@@ -2,35 +2,35 @@
 
 <form class="form-horizontal" id="formNewPayment" role="form" onSubmit="return send_payment(this);">
 
-	<% if @pay_form_erb[:lists_list] %>
-		<div class="form-group">
-			<label for="selectList" class="col-lg-2 control-label">List</label>
-			<div class="col-lg-4">
-				<select class="form-control" id="selectList"><%= @pay_form_erb[:lists_list] %></select>
-			</div>
-		</div>
-	<% else %>
-	<% end %>
+  <% if @pay_form_erb[:lists_list] %>
+    <div class="form-group">
+      <label for="selectList" class="col-lg-2 control-label">List</label>
+      <div class="col-lg-4">
+        <select class="form-control" id="selectList"><%= @pay_form_erb[:lists_list] %></select>
+      </div>
+    </div>
+  <% else %>
+  <% end %>
 
-	<div class="form-group">
-		<label for="inputWhat" class="col-lg-2 control-label">What</label>
-		<div class="col-lg-4">
-			<input type="text" class="form-control" id="inputWhat" name="what" placeholder="What">
-		</div>
-	</div>
+  <div class="form-group">
+    <label for="inputWhat" class="col-lg-2 control-label">What</label>
+    <div class="col-lg-4">
+      <input type="text" class="form-control" id="inputWhat" name="what" placeholder="What">
+    </div>
+  </div>
 
-	<div class="form-group">
-		<label for="inputHowMuch" class="col-lg-2 control-label">How Much</label>
-		<div class="col-lg-4">
-			<input type="text" class="form-control" id="inputHowMuch" name="sum" placeholder="How Much">
-		</div>
-	</div>
+  <div class="form-group">
+    <label for="inputHowMuch" class="col-lg-2 control-label">How Much</label>
+    <div class="col-lg-4">
+      <input type="text" class="form-control" id="inputHowMuch" name="sum" placeholder="How Much">
+    </div>
+  </div>
 
-	<div class="form-group">
-		<div class="col-lg-offset-2 col-lg-10">
-			<button type="submit" class="btn btn-primary">Save.</button>
-		</div>
-	</div>
+  <div class="form-group">
+    <div class="col-lg-offset-2 col-lg-10">
+      <button type="submit" class="btn btn-primary">Save.</button>
+    </div>
+  </div>
 
 </form>
 
