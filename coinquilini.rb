@@ -166,12 +166,15 @@ end
 
 module Validate
   def validate name, param
-    response = {
-      :status => 'error',
-      :msg    => "Please specify #{name}"
+    @fail_erb = {
+      :error => 'error',
+      :msg   => "Please specify #{name}"
     }
 
-    halt(response.to_json) if params[param].nil? or params[param].empty?
+    if params[param].nil? or params[param].empty?
+      puts erb(:fail)
+      halt erb(:fail)
+    end
 
     params[param]
   end
@@ -409,7 +412,12 @@ get '/payments' do
   payments = get_payments(list, start_t, end_t)
 
   if payments.count.zero?
-    halt(erb(:no_payments))
+    @fail_erb = {
+      :error => 'No payments :(',
+      :msg   => 'There are no payments for this month.<br>Go <a href="/">back</a>'
+    }
+
+    halt(erb(:fail))
   end
 
   last_period = Time.now.strftime("%Y %m").eql? period
@@ -486,7 +494,7 @@ get '/delete' do
       :msg   => e.message + '<br>Go <a href=/>back</a>'
     }
 
-    halt erb(:fail)
+    halt(erb(:fail))
   end
 
   redirect '/'
