@@ -189,7 +189,7 @@ module View
     list = ''
 
     DB["SELECT DISTINCT strftime('%Y %m',payment_date, 'unixepoch') " +
-      "AS ym FROM payments"].each do |d|
+      "AS ym FROM payments ORDER BY ym DESC"].each do |d|
       list += "<option value='#{d[:ym]}'>#{d[:ym]}</option>"
     end
 
