@@ -2,6 +2,7 @@
 
 require 'sinatra'
 require 'sequel'
+require 'bcrypt'
 require 'json'
 
 DB = Sequel.connect('sqlite://db')
@@ -49,9 +50,11 @@ Debts    = DB[:debts]
 module Sinatra
 module Db
   def new_user(name, password)
+    crypted = BCrypt::Password.create(password)
+
     Users.insert(
       :user_name     => name,
-      :user_password => password
+      :user_password => crypted
     )
   end
 
@@ -271,9 +274,13 @@ end
 
 module Auth
   def authenticate!(name, password)
-    res = Users.where(:user_name => name, :user_password => password)
-    if res.count.nonzero?
-      session[:user] = {:name => name, :id => res.first[:user_id]}
+    user = Users.where(:user_name => name)
+
+    if user.count.nonzero? and BCrypt::Password.new(user.first[:user_password]) == password
+      session[:user] = {
+        :name => name,
+        :id   => user.first[:user_id]
+      }
     end
   end
 
