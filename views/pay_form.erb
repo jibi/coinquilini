@@ -2,13 +2,14 @@
 
 <form class="form-horizontal" id="formNewPayment" role="form" onSubmit="return send_payment(this);">
 
-	<% if not @pay_form_erb[:lists_list].nil? %>
+	<% if @pay_form_erb[:lists_list] %>
 		<div class="form-group">
 			<label for="selectList" class="col-lg-2 control-label">List</label>
 			<div class="col-lg-4">
 				<select class="form-control" id="selectList"><%= @pay_form_erb[:lists_list] %></select>
 			</div>
 		</div>
+	<% else %>
 	<% end %>
 
 	<div class="form-group">

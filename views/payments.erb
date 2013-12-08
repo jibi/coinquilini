@@ -60,9 +60,6 @@ set_paid(debt_id) {
 	<button type="submit" class="btn btn-primary">Update</button>
 </form>
 
-<% if @payments_erb[:payments_table].nil? %>
-	<h2>No payments yet :(</h2>
-<% else %>
 <div class="checkbox-inline">
 	<label>
 		<input name="summary" type="checkbox" checked="checked" onClick='toggleShow(this, "summary");'> Summary
@@ -95,7 +92,7 @@ set_paid(debt_id) {
 
 <div id=payme><h2>Please pay me</h2>
 	<table class="table table-striped pay_table">
-		<tr><th>Who</th><th>Owes</th><th>To</th><%= @last_period ?  '' : '<th>Paid?</th>' %></tr>
+		<tr><th>Who</th><th>Owes</th><th>To</th><%= @payments_erb[:last_period] ?  '' : '<th>Paid?</th>' %></tr>
 		<%= @payments_erb[:payme_table] %>
 </table></div><br>
-<% end %>
+

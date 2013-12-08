@@ -62,6 +62,10 @@ module Db
     Lists.insert(:list_name => name)
   end
 
+  def get_default_list
+    Lists.first[:list_id]
+  end
+
   def get_distinct_users(list, start_t, end_t)
     Payments.select(:payment_user).where(
       :payment_date => (start_t .. end_t),
@@ -167,7 +171,7 @@ module Validate
       :msg    => "Please specify #{name}"
     }
 
-    halt response.to_json if params[param].nil? or params[param].empty?
+    halt(response.to_json) if params[param].nil? or params[param].empty?
 
     params[param]
   end
@@ -235,7 +239,7 @@ module View
     table
   end
 
-  def build_payme_table(debts)
+  def build_payme_table(debts, last_period)
     table = ''
     c     = 0
 
@@ -245,7 +249,7 @@ module View
         d[:what].to_s + '</td><td>' +
         get_user_name(d[:to]) + '</td>'
 
-      if not @last_period
+      if not last_period
         table += '<td id="debt_' + d[:debt_id].to_s + '">'
         if d[:paid]
           table += '<span style="color: #24de44" class="glyphicon glyphicon-ok"></span>'
@@ -402,46 +406,47 @@ get '/payments' do
   start_t  = Time.mktime(year, month).to_i
   end_t    = (month.eql?(12) ? Time.mktime(year + 1) : Time.mktime(year, month + 1)).to_i
 
-  users_n  = get_distinct_users(list, start_t, end_t).count
   payments = get_payments(list, start_t, end_t)
 
-  @payments_erb = {
-    :lists_list  => build_lists_list(list),
-    :period_list => build_period_list(period)
-  }
+  if payments.count.zero?
+    halt(erb(:no_payments))
+  end
 
-  @last_period = Time.now.strftime("%Y %m").eql? period
-  @debtmatrix  = saved_debts_table(start_t)
+  last_period = Time.now.strftime("%Y %m").eql? period
+  debtmatrix  = saved_debts_table(start_t)
 
-  if @debtmatrix.nil?
+  if debtmatrix.nil?
     if not payments.count.zero?
+      users_n  = get_distinct_users(list, start_t, end_t).count
+
       payments.each do |p|
         ind_tot[p[:user_id]] += p[:payment_sum].to_f.round(2)
         tot                  += p[:payment_sum].to_f.round(2)
       end
 
-      @debtmatrix = calc_debtmatrix(ind_tot)
+      debtmatrix = calc_debtmatrix(ind_tot)
       avg_tot    = (tot / users_n).round(2)
     end
   end
 
-  if not @last_period and saved_debts_table(start_t).nil?
-    store_debts_table(start_t, @debtmatrix)
-  end
+  store_debts_table(start_t, debtmatrix) if not last_period and saved_debts_table(start_t).nil?
 
-  @payments_erb.merge!({
+  @payments_erb = {
+    :lists_list     => build_lists_list(list),
+    :period_list    => build_period_list(period),
     :summary_table  => build_summary_table(ind_tot, avg_tot),
     :payments_table => build_payments_table(payments),
-    :payme_table    => build_payme_table(@debtmatrix)
-  })
+    :payme_table    => build_payme_table(debtmatrix, last_period),
+    :last_period    => last_period
+  }
 
   erb :payments
 end
 
 post '/' do
-  list = validate('list', :list)
   what = validate('what', :what)
   sum  = validate('sum', :sum).gsub(',', '.').to_f
+  list = params[:list] || get_default_list()
 
   if sum.to_i < 0
     response = {
