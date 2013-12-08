@@ -172,6 +172,8 @@ end
 
 module View
   def build_lists_list(default=1)
+    return nil if Lists.count.eql? 1
+
     list = ''
 
     Lists.each do |l|

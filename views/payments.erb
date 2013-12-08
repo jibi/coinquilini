@@ -37,22 +37,24 @@ set_paid(debt_id) {
 </script>
 
 <form class="form-horizontal" role="form">
-	<div class="form-group">
-		<label for="selectList">List</label>
-		<div class="col-lg-3">
-		<select class="form-control" name="list" id="selectList">
-			<%= @payments_erb[:lists_list] %>
-		</select>
-	</div>
-	</div>
+	<% if not @payments_erb[:lists_list].nil? %>
+		<div class="form-group">
+			<label for="selectList">List</label>
+			<div class="col-lg-3">
+				<select class="form-control" name="list" id="selectList">
+					<%= @payments_erb[:lists_list] %>
+				</select>
+			</div>
+		</div>
+	<% end %>
 
 	<div class="form-group">
 		<label for="selectPeriod">Period</label>
 		<div class="col-lg-3">
-		<select class="form-control" name="period" id="selectPeriod">
-			<%= @payments_erb[:period_list] %>
-		</select>
-	</div>
+			<select class="form-control" name="period" id="selectPeriod">
+				<%= @payments_erb[:period_list] %>
+			</select>
+		</div>
 	</div>
 
 	<button type="submit" class="btn btn-primary">Update</button>
