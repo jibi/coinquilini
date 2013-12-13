@@ -215,8 +215,10 @@ module View
     ind_tot.each do |k,v|
       d = (v - avg_tot).round(2)
 
-      summary += '<tr class=' + (d >= 0 ? 'success' : 'danger' ) + '><td>' + k.to_s +
-        '</td><td>' + v.round(2).to_s + '</td><td class=>' + d.to_s + '</td></tr>'
+      summary += '<tr class=' + (d >= 0 ? 'success' : 'danger' ) + '>' +
+        '<td>' + get_user_name(k.to_s) + '</td>' +
+        '<td>' + v.round(2).to_s + '</td>' +
+        '<td class=>' + d.to_s + '</td></tr>'
 
       c = c + 1
     end
