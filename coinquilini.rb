@@ -299,211 +299,213 @@ module Auth
 end
 end
 
-configure do
-  helpers Sinatra::Db
-  helpers Sinatra::DebtMatrix
-  helpers Sinatra::Validate
-  helpers Sinatra::View
-  helpers Sinatra::Auth
+class Coinquilini < Sinatra::Base
+  configure do
+    helpers Sinatra::Db
+    helpers Sinatra::DebtMatrix
+    helpers Sinatra::Validate
+    helpers Sinatra::View
+    helpers Sinatra::Auth
 
-  set :server, :puma
-  set :bind, '0.0.0.0'
-  enable :sessions
-end
-
-before do
-  pass if request.path_info.split('?')[0].match(/^\/first_config|^\/auth/)
-
-  redirect '/first_config' if Users.count.zero? #which means no admin user.
-  redirect '/auth' if session[:user].nil?
-end
-
-before '/admin/*' do
-  @fail_erb = {
-    :error => 'Admin area.',
-    :msg   => "You are not admin"
-  }
-
-  halt erb(:fail) if session[:user][:id] != 1
-end
-
-get '/' do
-  @pay_form_erb = { :lists_list => build_lists_list }
-  erb :pay_form
-end
-
-get '/first_config' do
-  erb :first_config
-end
-
-post '/first_config' do
-  admin_password = validate('admin password', :admin_password)
-  name           = validate('first user name', :name)
-  password       = validate('first user password', :password)
-  list           = validate('first list', :list)
-
-  new_user('admin', admin_password)
-  new_user(name, password)
-
-  new_list(list)
-
-  redirect '/auth'
-end
-
-get '/auth' do
-  session.clear
-  erb :auth
-end
-
-post '/auth' do
-  name     = validate('username', :name)
-  password = validate('password', :password)
-
-  session[:user] = authenticate!(name, password)
-
-  if authenticated?
-    redirect '/'
-  else
-    @fail_erb = {
-      :error => 'Wrong passphrase',
-      :msg   => "But you can try <a href=/auth>again</a>"
-    }
-
-    halt erb(:fail)
-  end
-end
-
-get '/admin/new_user' do
-  erb :new_user
-end
-
-post '/admin/new_user' do
-  name     = validate('name',  :name)
-  password = validate('password',  :password)
-
-  new_user(name, password)
-
-  redirect '/'
-end
-
-get '/admin/new_list' do
-  erb :new_list
-end
-
-post '/admin/new_list' do
-  name = validate('list name',  :name)
-
-  new_list(name)
-
-  redirect '/'
-end
-
-get '/payments' do
-  list     = params[:list] || Lists.first[:list_id]
-
-  ind_tot  = Hash.new(0) # per user total
-  tot      = 0 # global total
-
-  period   = params["period"] || Time.now.strftime("%Y %m")
-  year     = period[0..3].to_i
-  month    = period[5..6].to_i
-
-  start_t  = Time.mktime(year, month).to_i
-  end_t    = (month.eql?(12) ? Time.mktime(year + 1) : Time.mktime(year, month + 1)).to_i
-
-  payments = get_payments(list, start_t, end_t)
-
-  if payments.count.zero?
-    @fail_erb = {
-      :error => 'No payments :(',
-      :msg   => 'There are no payments for this month.<br>Go <a href="/">back</a>'
-    }
-
-    halt(erb(:fail))
+    set :server, :puma
+    set :bind, '0.0.0.0'
+    enable :sessions
   end
 
-  last_period = Time.now.strftime("%Y %m").eql? period
-  debtmatrix  = saved_debts_table(start_t)
+  before do
+    pass if request.path_info.split('?')[0].match(/^\/first_config|^\/auth/)
 
-  if debtmatrix.nil?
-    if not payments.count.zero?
-      users_n  = get_distinct_users(list, start_t, end_t).count
+    redirect '/first_config' if Users.count.zero? #which means no admin user.
+    redirect '/auth' if session[:user].nil?
+  end
 
-      payments.each do |p|
-        ind_tot[p[:user_id]] += p[:payment_sum].to_f.round(2)
-        tot                  += p[:payment_sum].to_f.round(2)
-      end
+  before '/admin/*' do
+    @fail_erb = {
+      :error => 'Admin area.',
+      :msg   => "You are not admin"
+    }
 
-      debtmatrix = calc_debtmatrix(ind_tot)
-      avg_tot    = (tot / users_n).round(2)
+    halt erb(:fail) if session[:user][:id] != 1
+  end
+
+  get '/' do
+    @pay_form_erb = { :lists_list => build_lists_list }
+    erb :pay_form
+  end
+
+  get '/first_config' do
+    erb :first_config
+  end
+
+  post '/first_config' do
+    admin_password = validate('admin password', :admin_password)
+    name           = validate('first user name', :name)
+    password       = validate('first user password', :password)
+    list           = validate('first list', :list)
+
+    new_user('admin', admin_password)
+    new_user(name, password)
+
+    new_list(list)
+
+    redirect '/auth'
+  end
+
+  get '/auth' do
+    session.clear
+    erb :auth
+  end
+
+  post '/auth' do
+    name     = validate('username', :name)
+    password = validate('password', :password)
+
+    session[:user] = authenticate!(name, password)
+
+    if authenticated?
+      redirect '/'
+    else
+      @fail_erb = {
+        :error => 'Wrong passphrase',
+        :msg   => "But you can try <a href=/auth>again</a>"
+      }
+
+      halt erb(:fail)
     end
   end
 
-  store_debts_table(start_t, debtmatrix) if not last_period and saved_debts_table(start_t).nil?
+  get '/admin/new_user' do
+    erb :new_user
+  end
 
-  @payments_erb = {
-    :lists_list     => build_lists_list(list),
-    :period_list    => build_period_list(period),
-    :summary_table  => build_summary_table(ind_tot, avg_tot),
-    :payments_table => build_payments_table(payments),
-    :payme_table    => build_payme_table(debtmatrix, last_period),
-    :last_period    => last_period
-  }
+  post '/admin/new_user' do
+    name     = validate('name',  :name)
+    password = validate('password',  :password)
 
-  erb :payments
-end
+    new_user(name, password)
 
-post '/' do
-  what = validate('what', :what)
-  sum  = validate('sum', :sum).gsub(',', '.').to_f
-  list = params[:list] || get_default_list()
+    redirect '/'
+  end
 
-  if sum.to_i < 0
+  get '/admin/new_list' do
+    erb :new_list
+  end
+
+  post '/admin/new_list' do
+    name = validate('list name',  :name)
+
+    new_list(name)
+
+    redirect '/'
+  end
+
+  get '/payments' do
+    list     = params[:list] || Lists.first[:list_id]
+
+    ind_tot  = Hash.new(0) # per user total
+    tot      = 0 # global total
+
+    period   = params["period"] || Time.now.strftime("%Y %m")
+    year     = period[0..3].to_i
+    month    = period[5..6].to_i
+
+    start_t  = Time.mktime(year, month).to_i
+    end_t    = (month.eql?(12) ? Time.mktime(year + 1) : Time.mktime(year, month + 1)).to_i
+
+    payments = get_payments(list, start_t, end_t)
+
+    if payments.count.zero?
+      @fail_erb = {
+        :error => 'No payments :(',
+        :msg   => 'There are no payments for this month.<br>Go <a href="/">back</a>'
+      }
+
+      halt(erb(:fail))
+    end
+
+    last_period = Time.now.strftime("%Y %m").eql? period
+    debtmatrix  = saved_debts_table(start_t)
+
+    if debtmatrix.nil?
+      if not payments.count.zero?
+        users_n  = get_distinct_users(list, start_t, end_t).count
+
+        payments.each do |p|
+          ind_tot[p[:user_id]] += p[:payment_sum].to_f.round(2)
+          tot                  += p[:payment_sum].to_f.round(2)
+        end
+
+        debtmatrix = calc_debtmatrix(ind_tot)
+        avg_tot    = (tot / users_n).round(2)
+      end
+    end
+
+    store_debts_table(start_t, debtmatrix) if not last_period and saved_debts_table(start_t).nil?
+
+    @payments_erb = {
+      :lists_list     => build_lists_list(list),
+      :period_list    => build_period_list(period),
+      :summary_table  => build_summary_table(ind_tot, avg_tot),
+      :payments_table => build_payments_table(payments),
+      :payme_table    => build_payme_table(debtmatrix, last_period),
+      :last_period    => last_period
+    }
+
+    erb :payments
+  end
+
+  post '/' do
+    what = validate('what', :what)
+    sum  = validate('sum', :sum).gsub(',', '.').to_f
+    list = params[:list] || get_default_list()
+
+    if sum.to_i < 0
+      response = {
+        :status => 'error',
+        :msg    => 'Negative sum.<br>Doesn\'t make sense.'
+      }
+
+      halt response.to_json
+    end
+
+    new_payment(session[:user][:id], what, sum, list)
+
     response = {
-      :status => 'error',
-      :msg    => 'Negative sum.<br>Doesn\'t make sense.'
+      :status => "ok",
+      :msg    => "Successfully added #{session[:user][:name]}'s payment:<br>#{sum}€ for #{what}"
     }
 
-    halt response.to_json
+    response.to_json
   end
 
-  new_payment(session[:user][:id], what, sum, list)
+  post '/set_paid' do
+    debt_id = params[:debt_id]
+    set_paid_debt(debt_id)
 
-  response = {
-    :status => "ok",
-    :msg    => "Successfully added #{session[:user][:name]}'s payment:<br>#{sum}€ for #{what}"
-  }
-
-  response.to_json
-end
-
-post '/set_paid' do
-  debt_id = params[:debt_id]
-  set_paid_debt(debt_id)
-
-  response = { :status => "ok" }
-  response.to_json
-end
-
-get '/delete' do
-  pid = validate('payement id', :pid)
-
-  begin
-    delete_payment(pid).eql?(-1)
-  rescue Exception => e
-    @fail_erb = {
-      :error => 'Fail deleting payment.',
-      :msg   => e.message + '<br>Go <a href=/>back</a>'
-    }
-
-    halt(erb(:fail))
+    response = { :status => "ok" }
+    response.to_json
   end
 
-  redirect '/'
-end
+  get '/delete' do
+    pid = validate('payement id', :pid)
 
-get '/logout' do
-  session.clear
-  redirect '/auth'
+    begin
+      delete_payment(pid).eql?(-1)
+    rescue Exception => e
+      @fail_erb = {
+        :error => 'Fail deleting payment.',
+        :msg   => e.message + '<br>Go <a href=/>back</a>'
+      }
+
+      halt(erb(:fail))
+    end
+
+    redirect '/'
+  end
+
+  get '/logout' do
+    session.clear
+    redirect '/auth'
+  end
 end
 
