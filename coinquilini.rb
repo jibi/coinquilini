@@ -415,12 +415,11 @@ class Coinquilini < Sinatra::Base
     payments = get_payments(list, start_t, end_t)
 
     if payments.count.zero?
-      @fail_erb = {
-        :error => 'No payments :(',
-        :msg   => 'There are no payments for this month.<br>Go <a href="/">back</a>'
+      @payments_erb = {
+        :period_list  => build_period_list(period),
       }
 
-      halt(erb(:fail))
+      halt(erb(:payments))
     end
 
     last_period = Time.now.strftime("%Y %m").eql? period

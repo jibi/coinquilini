@@ -22,40 +22,45 @@
   <button type="submit" class="btn btn-primary">Update</button>
 </form>
 
-<div class="checkbox-inline">
-  <label>
-    <input name="summary" type="checkbox" checked="checked" onClick='toggleShow(this, "summary");'> Summary
-  </label>
-</div>
+<% if @payments_erb[:payments_table] %>
+  <div class="checkbox-inline">
+    <label>
+      <input name="summary" type="checkbox" checked="checked" onClick='toggleShow(this, "summary");'> Summary
+    </label>
+  </div>
 
-<div class="checkbox-inline">
-  <label>
-    <input name="payments" type="checkbox" checked="checked" onClick='toggleShow(this, "payments");'> Payments
-  </label>
-</div>
+  <div class="checkbox-inline">
+    <label>
+      <input name="payments" type="checkbox" checked="checked" onClick='toggleShow(this, "payments");'> Payments
+    </label>
+  </div>
 
-<div class="checkbox-inline">
-  <label>
-    <input name="payme" type="checkbox" checked="checked" onClick='toggleShow(this, "payme");'> Payme
-  </label>
-</div>
+  <div class="checkbox-inline">
+    <label>
+      <input name="payme" type="checkbox" checked="checked" onClick='toggleShow(this, "payme");'> Payme
+    </label>
+  </div>
 
-<div id='summary'><h2>Summary</h2>
-  <table class="table table-striped pay_table">
-    <tr><th>Who</th><th>How much</th><th>Diff</th></tr>
-    <%= @payments_erb[:summary_table] %>
-</table></div><br>
+  <div id='summary'><h2>Summary</h2>
+    <table class="table table-striped pay_table">
+      <tr><th>Who</th><th>How much</th><th>Diff</th></tr>
+      <%= @payments_erb[:summary_table] %>
+  </table></div><br>
 
-<div id='payments'><h2>Payments</h2>
-  <table class="table table-striped pay_table">
-    <tr><th>When</th><th>Who</th><th>What</th><th>How much</th><th>Del</th></tr>
-    <%= @payments_erb[:payments_table] %>
-</table></div><br>
+  <div id='payments'><h2>Payments</h2>
+    <table class="table table-striped pay_table">
+      <tr><th>When</th><th>Who</th><th>What</th><th>How much</th><th>Del</th></tr>
+      <%= @payments_erb[:payments_table] %>
+  </table></div><br>
 
-<div id=payme><h2>Please pay me</h2>
-  <table class="table table-striped pay_table">
-    <tr><th>Who</th><th>Owes</th><th>To</th><%= @payments_erb[:last_period] ?  '' : '<th>Paid?</th>' %></tr>
-    <%= @payments_erb[:payme_table] %>
-</table></div><br>
+  <div id=payme><h2>Please pay me</h2>
+    <table class="table table-striped pay_table">
+      <tr><th>Who</th><th>Owes</th><th>To</th><%= @payments_erb[:last_period] ?  '' : '<th>Paid?</th>' %></tr>
+      <%= @payments_erb[:payme_table] %>
+  </table></div><br>
 
-<script type="text/javascript">document.getElementById("body").style.width = "800px";</script>
+  <script type="text/javascript">document.getElementById("body").style.width = "800px";</script>
+<% else %>
+  <h2>No payments for this month yet!</h2>
+  <h3>(Change month or go <a href="/">back</a>)</h3>
+<% end %>
