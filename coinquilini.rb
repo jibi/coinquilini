@@ -425,18 +425,17 @@ class Coinquilini < Sinatra::Base
     last_period = Time.now.strftime("%Y %m").eql? period
     debtmatrix  = saved_debts_table(start_t)
 
-    if debtmatrix.nil?
-      if not payments.count.zero?
-        users_n  = get_distinct_users(list, start_t, end_t).count
+    if not payments.count.zero?
+      users_n  = get_distinct_users(list, start_t, end_t).count
 
-        payments.each do |p|
-          ind_tot[p[:user_id]] += p[:payment_sum].to_f.round(2)
-          tot                  += p[:payment_sum].to_f.round(2)
-        end
-
-        debtmatrix = calc_debtmatrix(ind_tot)
-        avg_tot    = (tot / users_n).round(2)
+      payments.each do |p|
+        ind_tot[p[:user_id]] += p[:payment_sum].to_f.round(2)
+        tot                  += p[:payment_sum].to_f.round(2)
       end
+
+      debtmatrix = calc_debtmatrix(ind_tot) if debtmatrix.nil?
+
+      avg_tot    = (tot / users_n).round(2)
     end
 
     store_debts_table(start_t, debtmatrix) if not last_period and saved_debts_table(start_t).nil?
